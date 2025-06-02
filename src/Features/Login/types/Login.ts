@@ -2,6 +2,7 @@ import { ApiResponse } from "@/lib/apiClient";
 
 export interface LoginResponseData {
   token: string;
+  type: string;
 }
 
 export interface LoginRequest {

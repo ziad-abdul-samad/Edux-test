@@ -25,7 +25,7 @@ const LoginPage = () => {
       navigate("/dashboard");
     },
     onError: (e) => {
-      console.log(e)
+      console.log(e);
     },
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -41,13 +41,15 @@ const LoginPage = () => {
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-primary">
-              Quizify
+              Edux
             </CardTitle>
             <CardDescription>قم بتسجيل الدخول للوصول إلى حسابك</CardDescription>
           </CardHeader>
           <CardContent>
             <form
-              onSubmit={() => {
+              onSubmit={(event) => {
+                event.preventDefault();
+                console.log("Form submit prevented, mutation started.");
                 mutate({ username, password });
               }}
               className="space-y-4"

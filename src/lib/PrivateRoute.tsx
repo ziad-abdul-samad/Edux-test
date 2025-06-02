@@ -1,4 +1,3 @@
-import { JSX } from "react";
 import { Navigate } from "react-router-dom";
 
 const isAuthenticated = () => {
@@ -6,12 +5,12 @@ const isAuthenticated = () => {
 };
 
 export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-  return isAuthenticated() ? children : <Navigate to="/dashboard" />;
+  return isAuthenticated() ? children : <Navigate to="/" />;
 };
 
 export const CheckAuth = ({ children }: { children: JSX.Element }) => {
   if (isAuthenticated()) {
-    return <Navigate to={"/dashboard"} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return children;
 };

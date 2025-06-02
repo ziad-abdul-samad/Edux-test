@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import LoginPage from "./Features/Login/LoginPage";
-import Dashboard from "./Features/Layout/DashboardLayout";
 import { CheckAuth, PrivateRoute } from "./lib/PrivateRoute";
+import DashboardRouter from "./Features/Dashboard/DashboardRouter";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +27,7 @@ const App = () => (
             path="/dashboard"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <DashboardRouter />
               </PrivateRoute>
             }
           />

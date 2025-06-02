@@ -2,10 +2,10 @@ import { get, post } from "@/lib/apiClient";
 import { LoginRequest, LoginResponse } from "../types/Login";
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
-  const response = await post<LoginResponse, LoginRequest>("/login", data);
-  // TODO:: REMOVE
-  console.log(response.data);
-  localStorage.setItem("token", response.data.data.token);
+  const response = await post<LoginResponse, LoginRequest>("/auth/login", data);
+  const { token, type } = response.data.data;
+  localStorage.setItem("token", token);
+  localStorage.setItem("role", type); // save user role
   return response.data;
 };
 
