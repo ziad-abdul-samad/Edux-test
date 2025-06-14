@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import UserDashboard from "./UserDashboard";
+import { Routes, useNavigate,Route } from "react-router-dom";
+import UserDashboard from "./AdminDashboard/UserDashboard";
 import TeacherDashboard from "./TeacherDashboard";
 import StudentDashboard from "./StudentDashboard";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import TeachersPage from "./AdminDashboard/TeachersPage";
 
 const DashboardRouter = () => {
   const navigate = useNavigate();
@@ -35,19 +36,43 @@ const DashboardRouter = () => {
     localStorage.clear();
     navigate("/");
   };
-
+  const isActive = (path: string) => {
+    return (
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
+  };
   const renderNavItems = () => {
     switch (role) {
       case "user":
         return (
           <>
             <Button
-              variant="default"
-              className="justify-start w-full text-right"
+              variant={
+                isActive("/dashboard") && !isActive("/dashboard/teachers")
+                  ? "default"
+                  : "ghost"
+              }
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard") && !isActive("/dashboard/teachers")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="ml-2 rtl-flip" />
               لوحة التحكم
+            </Button>
+            <Button
+              variant={isActive("/dashboard/teachers") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/teachers")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
+              onClick={() => navigate("/dashboard/teachers")}
+            >
+              <Users className="ml-2 rtl-flip" />
+              المعلمين
             </Button>
           </>
         );
@@ -140,8 +165,13 @@ const DashboardRouter = () => {
 
   const renderDashboardComponent = () => {
     switch (role) {
-      case "user":
-        return <UserDashboard />;
+     case "user":
+      return (
+        <Routes>
+          <Route path="/" element={<UserDashboard />} />
+          <Route path="teachers" element={<TeachersPage />} />
+        </Routes>
+      );
       case "teacher":
         return <TeacherDashboard />;
       case "student":
