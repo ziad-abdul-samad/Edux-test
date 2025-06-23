@@ -1,4 +1,4 @@
-import { get, post } from "@/lib/apiClient";
+import { post } from "@/lib/apiClient";
 import { GetTeachersResponse } from "../types/Teachers";
 
 export const getTeachers = async (): Promise<GetTeachersResponse["data"]> => {
@@ -13,9 +13,11 @@ export const getTeachers = async (): Promise<GetTeachersResponse["data"]> => {
     throw new Error("غير مصرح لك بعرض هذه البيانات");
   }
 
-  const response = await post<{ data: GetTeachersResponse["data"]; message: string; status: number }>(
-    "/teachers/index"
-  );
+  const response = await post<{
+    data: GetTeachersResponse["data"];
+    message: string;
+    status: number;
+  }>("/teachers/index");
 
-  return response.data.data; // unwrap here, return only the inner `data`
+  return response.data.data;
 };

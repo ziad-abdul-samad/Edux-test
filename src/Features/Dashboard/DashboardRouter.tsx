@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Routes, useNavigate,Route } from "react-router-dom";
+import { Routes, useNavigate, Route } from "react-router-dom";
 import UserDashboard from "./AdminDashboard/UserDashboard";
-import TeacherDashboard from "./TeacherDashboard";
+import TeacherDashboard from "./TeacherDashboard/TeacherDashboard";
 import StudentDashboard from "./StudentDashboard";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import TeachersPage from "./AdminDashboard/TeachersPage";
+import StudentsPage from "./TeacherDashboard/StudentsPage";
 
 const DashboardRouter = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const DashboardRouter = () => {
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
-    const storedUsername = localStorage.getItem("username"); // or "name" if that's the key
+    const storedUsername = localStorage.getItem("username");
     if (!storedRole) {
       navigate("/login");
     } else {
@@ -82,7 +83,7 @@ const DashboardRouter = () => {
             <Button
               variant="default"
               className="justify-start w-full text-right"
-              onClick={() => navigate("/dashboard/teacher")}
+              onClick={() => navigate("/dashboard/")}
             >
               <LayoutDashboard className="ml-2 rtl-flip" />
               لوحة التحكم
@@ -165,15 +166,21 @@ const DashboardRouter = () => {
 
   const renderDashboardComponent = () => {
     switch (role) {
-     case "user":
-      return (
-        <Routes>
-          <Route path="/" element={<UserDashboard />} />
-          <Route path="teachers" element={<TeachersPage />} />
-        </Routes>
-      );
+      case "user":
+        return (
+          <Routes>
+            <Route path="/" element={<UserDashboard />} />
+            <Route path="teachers" element={<TeachersPage />} />
+          </Routes>
+        );
       case "teacher":
-        return <TeacherDashboard />;
+        return (
+          <Routes>
+            <Route path="/" element={<TeacherDashboard />} />
+            <Route path="/students" element={<StudentsPage />} />
+          </Routes>
+        );
+      // return <TeacherDashboard />;
       case "student":
         return <StudentDashboard />;
       default:
@@ -206,6 +213,7 @@ const DashboardRouter = () => {
           <div className="flex items-center gap-2 mb-4 p-2 bg-purple-50 rounded-lg">
             <User className="rtl-flip text-purple-700" />
             <div>
+              {/* To Do : get the username */}
               <p className="font-medium">{username || "User"}</p>
               <p className="text-sm text-muted-foreground">
                 {role === "user"
