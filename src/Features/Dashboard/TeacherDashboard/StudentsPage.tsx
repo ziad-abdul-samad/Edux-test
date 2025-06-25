@@ -10,13 +10,14 @@ import {
   Plus,
   User,
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { deleteTeacher } from "./services/DeleteTeacher";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -29,17 +30,26 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
+import { GetStudents } from "./services/GetStudentsService";
+import { deleteStudent } from "./services/DeleteStudent";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const StudentPage = () => {
-  const [teacherToDelete, setTeacherToDelete] = useState<number | null>(null);
+  const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loadingIds, setLoadingIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
 
   // Fetch teachers
   const { data, isPending, error } = useQuery({
     queryKey: ["teachersDash"],
-    queryFn: getStudents,
+    queryFn: GetStudents,
   });
 
   // Delete teacher mutation
@@ -47,9 +57,9 @@ const StudentPage = () => {
     mutationFn: deleteStudent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teachersDash"] });
-      setTeacherToDelete(null);
+      setStudentToDelete(null);
       toast({
-        title: "تم حذف المعلم",
+        title: "تم حذف الطالب",
         description: "تم حذف الطالب وجميع بياناته من النظام بنجاح",
       });
     },
@@ -94,8 +104,8 @@ const StudentPage = () => {
     );
   }
 
-  const Students = data?.Students.data ?? [];
-  const filteredStudents = Students.filter(
+  const students = data?.data.students ?? [];
+  const filteredStudents = students.filter(
     (teacher) =>
       teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       teacher.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -108,7 +118,7 @@ const StudentPage = () => {
         <Link to="/dashboard/manage-passwords">
           <Button onClick={() => setIsAddStudentOpen(true)}>
             <Plus className="ml-2 rtl-flip" size={16} />
-            إضافة معلم جديد
+            إضافة طالب جديد
           </Button>
         </Link>
       </div>
@@ -158,10 +168,11 @@ const StudentPage = () => {
                   </Button>
                 </div>
                 <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-                  <span>{student.quizResults?.length || 0} اختبار مكتمل</span>
+                  {/* To DO : Add Exams counts for each student  */}
+                  <span>{0} اختبار مكتمل</span>
                   <span>
                     تم الإضافة:{" "}
-                    {new Date(student.createdAt).toLocaleDateString("ar-EG")}
+                    {new Date(student.created_at).toLocaleDateString("ar-EG")}
                   </span>
                 </div>
               </Card>
@@ -169,6 +180,135 @@ const StudentPage = () => {
           ))
         )}
       </div>
+{/* 
+      <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إضافة طالب جديد</DialogTitle>
+            <DialogDescription>
+              ابحث عن طالب موجود أو قم بإنشاء طالب جديد
+            </DialogDescription>
+          </DialogHeader>
+
+          {!isSearching ? (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="ابحث عن طالب بالاسم..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button onClick={handleSearchStudents} type="button">
+                  بحث
+                </Button>
+              </div>
+              <div className="text-center text-sm text-gray-500">أو</div>
+              <div className="space-y-2">
+                <Label htmlFor="name">الاسم</Label>
+                <Input
+                  id="name"
+                  placeholder="أدخل اسم الطالب"
+                  value={newStudent.name}
+                  onChange={(e) =>
+                    setNewStudent({ ...newStudent, name: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">اسم المستخدم</Label>
+                <Input
+                  id="username"
+                  placeholder="أدخل اسم مستخدم للطالب"
+                  value={newStudent.username}
+                  onChange={(e) =>
+                    setNewStudent({ ...newStudent, username: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">كلمة المرور</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="أدخل كلمة مرور للطالب"
+                  value={newStudent.password}
+                  onChange={(e) =>
+                    setNewStudent({ ...newStudent, password: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <Button
+                variant="outline"
+                className="mb-4"
+                onClick={() => {
+                  setIsSearching(false);
+                  setSelectedStudent(null);
+                  setSearchResults([]);
+                }}
+              >
+                العودة إلى إنشاء طالب جديد
+              </Button>
+
+              {searchResults.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">
+                  لم يتم العثور على طلاب. يمكنك إنشاء طالب جديد.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">اختر طالب من القائمة:</p>
+                  {searchResults.map((student) => (
+                    <div
+                      key={student.id}
+                      className={`p-3 border rounded-md cursor-pointer flex items-center justify-between ${
+                        selectedStudent?.id === student.id
+                          ? "bg-purple-50 border-purple-200"
+                          : ""
+                      }`}
+                      onClick={() => handleSelectStudent(student)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium">{student.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {student.username}
+                          </p>
+                        </div>
+                      </div>
+                      {students.some((s) => s.id === student.id) && (
+                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                          مضاف بالفعل
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddStudentOpen(false);
+                setIsSearching(false);
+                setSelectedStudent(null);
+                setSearchResults([]);
+                setNewStudent({ username: "", password: "", name: "" });
+              }}
+            >
+              إلغاء
+            </Button>
+            <Button onClick={handleAddStudent}>
+              {selectedStudent ? "إضافة الطالب المحدد" : "إنشاء طالب جديد"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog> */}
 
       <AlertDialog
         open={studentToDelete !== null}
@@ -177,12 +317,12 @@ const StudentPage = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد حذف الطالب</AlertDialogTitle>
-            <AlertDialogDescription>
-              ل أنت متأكد من أنك تريد حذف هذا الطالب من قائمة طلابك؟ لن يتمكن
+            <AlertDialogDescription className="text-right">
+              هل أنت متأكد من أنك تريد حذف هذا الطالب من قائمة طلابك؟ <br /> لن يتمكن
               الطالب من الوصول إلى اختباراتك بعد الآن.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex gap-2">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-500 hover:bg-red-600 text-white"
