@@ -16,8 +16,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -40,19 +39,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { addNewStudent } from "./services/AddNewStudent";
+import { AssignStudent } from "./services/AssignSTT";
 
 const StudentPage = () => {
   const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
-  // Fetch teachers
+  // Fetch students
   const { data, isPending, error } = useQuery({
     queryKey: ["teachersDash"],
     queryFn: GetStudents,
   });
 
-  // Delete teacher mutation
+  // Delete students mutation
   const { mutate: removeStudent } = useMutation({
     mutationFn: deleteStudent,
     onSuccess: () => {
@@ -71,6 +72,33 @@ const StudentPage = () => {
       });
     },
   });
+
+  //Add Student
+  const [name, setName] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [password_confirmation, setCPassword] = useState<string>("");
+  const [is_active, setIsActive] = useState(true);
+  const { mutate } = useMutation({
+    mutationFn: addNewStudent,
+    onSuccess: () => {
+      setIsAddStudentOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["teachersDash"] });
+    },
+    onError: (e) => {
+      console.error("Error adding student:", e);
+    },
+  });
+  const { mutate: assign } = useMutation({
+    mutationFn: AssignStudent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachersDash"] });
+    },
+    onError: (e) => {
+      console.error("Error adding student:", e);
+    },
+  });
+
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
 
   if (error) {
@@ -115,12 +143,10 @@ const StudentPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">إدارة الطلاب</h1>
-        <Link to="/dashboard/manage-passwords">
-          <Button onClick={() => setIsAddStudentOpen(true)}>
-            <Plus className="ml-2 rtl-flip" size={16} />
-            إضافة طالب جديد
-          </Button>
-        </Link>
+        <Button onClick={() => setIsAddStudentOpen(true)}>
+          <Plus className="ml-2 rtl-flip" size={16} />
+          إضافة طالب جديد
+        </Button>
       </div>
 
       <div className="flex items-center gap-2 max-w-sm">
@@ -180,7 +206,7 @@ const StudentPage = () => {
           ))
         )}
       </div>
-{/* 
+
       <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
         <DialogContent>
           <DialogHeader>
@@ -189,126 +215,78 @@ const StudentPage = () => {
               ابحث عن طالب موجود أو قم بإنشاء طالب جديد
             </DialogDescription>
           </DialogHeader>
-
-          {!isSearching ? (
-            <div className="space-y-4 py-2">
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="ابحث عن طالب بالاسم..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Button onClick={handleSearchStudents} type="button">
-                  بحث
-                </Button>
-              </div>
-              <div className="text-center text-sm text-gray-500">أو</div>
-              <div className="space-y-2">
-                <Label htmlFor="name">الاسم</Label>
-                <Input
-                  id="name"
-                  placeholder="أدخل اسم الطالب"
-                  value={newStudent.name}
-                  onChange={(e) =>
-                    setNewStudent({ ...newStudent, name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">اسم المستخدم</Label>
-                <Input
-                  id="username"
-                  placeholder="أدخل اسم مستخدم للطالب"
-                  value={newStudent.username}
-                  onChange={(e) =>
-                    setNewStudent({ ...newStudent, username: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">كلمة المرور</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="أدخل كلمة مرور للطالب"
-                  value={newStudent.password}
-                  onChange={(e) =>
-                    setNewStudent({ ...newStudent, password: e.target.value })
-                  }
-                />
-              </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              mutate({
+                name,
+                username,
+                password,
+                password_confirmation,
+                is_active,
+              });
+            }}
+            className="space-y-4 py-2"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="name">الاسم</Label>
+              <Input
+                id="name"
+                placeholder="أدخل اسم الطالب"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                type="text"
+                required
+              />
             </div>
-          ) : (
-            <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="username">اسم المستخدم</Label>
+              <Input
+                id="username"
+                placeholder="أدخل اسم مستخدم للطالب"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">كلمة المرور</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="أدخل كلمة مرور للمعلم"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="Cpassword">تأكيد كلمة المرور</Label>
+              <Input
+                id="Cpassword"
+                type="password"
+                placeholder="أدخل كلمة مرور للطالب مرة ثانية"
+                value={password_confirmation}
+                onChange={(e) => setCPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <DialogFooter>
               <Button
                 variant="outline"
-                className="mb-4"
-                onClick={() => {
-                  setIsSearching(false);
-                  setSelectedStudent(null);
-                  setSearchResults([]);
-                }}
+                type="button"
+                onClick={() => setIsAddStudentOpen(false)}
               >
-                العودة إلى إنشاء طالب جديد
+                إلغاء
               </Button>
-
-              {searchResults.length === 0 ? (
-                <div className="text-center py-4 text-gray-500">
-                  لم يتم العثور على طلاب. يمكنك إنشاء طالب جديد.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">اختر طالب من القائمة:</p>
-                  {searchResults.map((student) => (
-                    <div
-                      key={student.id}
-                      className={`p-3 border rounded-md cursor-pointer flex items-center justify-between ${
-                        selectedStudent?.id === student.id
-                          ? "bg-purple-50 border-purple-200"
-                          : ""
-                      }`}
-                      onClick={() => handleSelectStudent(student)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <div>
-                          <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-gray-500">
-                            {student.username}
-                          </p>
-                        </div>
-                      </div>
-                      {students.some((s) => s.id === student.id) && (
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                          مضاف بالفعل
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAddStudentOpen(false);
-                setIsSearching(false);
-                setSelectedStudent(null);
-                setSearchResults([]);
-                setNewStudent({ username: "", password: "", name: "" });
-              }}
-            >
-              إلغاء
-            </Button>
-            <Button onClick={handleAddStudent}>
-              {selectedStudent ? "إضافة الطالب المحدد" : "إنشاء طالب جديد"}
-            </Button>
-          </DialogFooter>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "جاري الإضافة..." : "إضافة الطالب"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
-      </Dialog> */}
+      </Dialog>
 
       <AlertDialog
         open={studentToDelete !== null}
@@ -318,8 +296,8 @@ const StudentPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد حذف الطالب</AlertDialogTitle>
             <AlertDialogDescription className="text-right">
-              هل أنت متأكد من أنك تريد حذف هذا الطالب من قائمة طلابك؟ <br /> لن يتمكن
-              الطالب من الوصول إلى اختباراتك بعد الآن.
+              هل أنت متأكد من أنك تريد حذف هذا الطالب من قائمة طلابك؟ <br /> لن
+              يتمكن الطالب من الوصول إلى اختباراتك بعد الآن.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex gap-2">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, useNavigate, Route } from "react-router-dom";
+import { Routes, useNavigate, Route, useLocation } from "react-router-dom";
 import UserDashboard from "./AdminDashboard/UserDashboard";
 import TeacherDashboard from "./TeacherDashboard/TeacherDashboard";
 import StudentDashboard from "./StudentDashboard";
@@ -19,6 +19,7 @@ import StudentsPage from "./TeacherDashboard/StudentsPage";
 
 const DashboardRouter = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [role, setRole] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
@@ -37,11 +38,13 @@ const DashboardRouter = () => {
     localStorage.clear();
     navigate("/");
   };
+
   const isActive = (path: string) => {
     return (
       location.pathname === path || location.pathname.startsWith(`${path}/`)
     );
   };
+
   const renderNavItems = () => {
     switch (role) {
       case "user":
@@ -81,32 +84,52 @@ const DashboardRouter = () => {
         return (
           <>
             <Button
-              variant="default"
-              className="justify-start w-full text-right"
-              onClick={() => navigate("/dashboard/")}
+              variant={
+                isActive("/dashboard") && !isActive("/dashboard/students")
+                  ? "default"
+                  : "ghost"
+              }
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard") && !isActive("/dashboard/students")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
+              onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="ml-2 rtl-flip" />
               لوحة التحكم
             </Button>
             <Button
-              variant="ghost"
-              className="justify-start w-full text-right"
+              variant={isActive("/dashboard/students") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/students")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard/students")}
             >
               <Users className="ml-2 rtl-flip" />
               الطلاب
             </Button>
             <Button
-              variant="ghost"
-              className="justify-start w-full text-right"
+              variant={isActive("/dashboard/quizzes/manage") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/quizzes/manage")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard/quizzes/manage")}
             >
               <BookOpen className="ml-2 rtl-flip" />
               الاختبارات
             </Button>
             <Button
-              variant="ghost"
-              className="justify-start w-full text-right"
+              variant={isActive("/dashboard/files") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/files")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard/files")}
             >
               <FolderOpen className="ml-2 rtl-flip" />
@@ -118,40 +141,60 @@ const DashboardRouter = () => {
         return (
           <>
             <Button
-              variant="default"
-              className="justify-start w-full text-right"
+              variant={isActive("/dashboard/student") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/student")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard/student")}
             >
               <LayoutDashboard className="ml-2 rtl-flip" />
               الرئيسية
             </Button>
             <Button
-              variant="ghost"
-              className="justify-start w-full text-right"
+              variant={isActive("/dashboard/quizzes") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/quizzes")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard/quizzes")}
             >
               <BookOpen className="ml-2 rtl-flip" />
               الاختبارات
             </Button>
             <Button
-              variant="ghost"
-              className="justify-start w-full text-right"
+              variant={isActive("/dashboard/results") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/results")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard/results")}
             >
               <BookOpen className="ml-2 rtl-flip" />
               النتائج السابقة
             </Button>
             <Button
-              variant="ghost"
-              className="justify-start w-full text-right"
+              variant={isActive("/dashboard/my-teachers") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/my-teachers")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard/my-teachers")}
             >
               <Users className="ml-2 rtl-flip" />
               الاشتراكات
             </Button>
             <Button
-              variant="ghost"
-              className="justify-start w-full text-right"
+              variant={isActive("/dashboard/library") ? "default" : "ghost"}
+              className={`justify-start w-full text-right ${
+                isActive("/dashboard/library")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
+              }`}
               onClick={() => navigate("/dashboard/library")}
             >
               <FolderOpen className="ml-2 rtl-flip" />
@@ -177,10 +220,9 @@ const DashboardRouter = () => {
         return (
           <Routes>
             <Route path="/" element={<TeacherDashboard />} />
-            <Route path="/students" element={<StudentsPage />} />
+            <Route path="students" element={<StudentsPage />} />
           </Routes>
         );
-      // return <TeacherDashboard />;
       case "student":
         return <StudentDashboard />;
       default:
@@ -200,7 +242,7 @@ const DashboardRouter = () => {
     <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
       {/* Sidebar */}
       <motion.div
-        initial={{ x: -100, opacity: 0 }}
+        initial={{ x: 100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
         className="bg-white border-l w-full lg:w-64 p-4 lg:min-h-screen"
@@ -213,7 +255,6 @@ const DashboardRouter = () => {
           <div className="flex items-center gap-2 mb-4 p-2 bg-purple-50 rounded-lg">
             <User className="rtl-flip text-purple-700" />
             <div>
-              {/* To Do : get the username */}
               <p className="font-medium">{username || "User"}</p>
               <p className="text-sm text-muted-foreground">
                 {role === "user"
