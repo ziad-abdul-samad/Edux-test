@@ -59,3 +59,11 @@ export interface ChangeActiveTeacher {
   message: string;
   status: number;
 }
+export interface UpdateTeacherResponse {
+  message:string;
+  status: number;
+}
+export interface UpdateTeacherRequest {
+  name:string;
+  username: string;
+}

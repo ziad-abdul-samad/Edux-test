@@ -9,6 +9,7 @@ import {
   Loader2,
   Plus,
   User,
+  Edit,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
@@ -41,10 +42,15 @@ import {
 } from "@/components/ui/dialog";
 import { addNewStudent } from "./services/AddNewStudent";
 import { AssignStudent } from "./services/AssignSTT";
+import { UpdateStudent } from "./services/UpdateStudent";
 
 const StudentPage = () => {
   const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
+  const [editDialogOpenId, setEditDialogOpenId] = useState<number | null>(null);
+
   const queryClient = useQueryClient();
 
   // Fetch students
@@ -53,6 +59,24 @@ const StudentPage = () => {
     queryFn: GetStudents,
   });
 
+  const { mutate: updateStudent, isPending: isUpdating } = useMutation({
+    mutationFn: UpdateStudent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachersDash"] });
+      toast({
+        title: "تم التحديث",
+        description: "تم تعديل بيانات المعلم بنجاح",
+      });
+      setEditDialogOpenId(null);
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في تعديل بيانات المعلم",
+        variant: "destructive",
+      });
+    },
+  });
   // Delete students mutation
   const { mutate: removeStudent } = useMutation({
     mutationFn: deleteStudent,
@@ -184,14 +208,27 @@ const StudentPage = () => {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => setStudentToDelete(student.id)}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
+                  <div className="flex items-center justify-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => setStudentToDelete(student.id)}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditName(student.name);
+                        setEditUsername(student.username);
+                        setEditDialogOpenId(student.id);
+                      }}
+                    >
+                      <Edit size={16} />
+                    </Button>
+                  </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
                   {/* To DO : Add Exams counts for each student  */}
@@ -316,6 +353,65 @@ const StudentPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Teacher Dialog */}
+      <Dialog
+        open={editDialogOpenId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditDialogOpenId(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تعديل بيانات الطالب</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label htmlFor="edit-name">اسم الطالب</Label>
+              <Input
+                className="mt-2"
+                id="edit-name"
+                placeholder={editName}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-username">اسم المستخدم</Label>
+              <Input
+                className="mt-2"
+                id="edit-username"
+                placeholder={editUsername}
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-4">
+            <Button
+              disabled={isUpdating}
+              onClick={() => {
+                if (!editName || !editUsername || editDialogOpenId === null)
+                  return;
+                updateStudent({
+                  name: editName,
+                  username: editUsername,
+                  id: editDialogOpenId,
+                });
+              }}
+            >
+              {isUpdating ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              حفظ التغييرات
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

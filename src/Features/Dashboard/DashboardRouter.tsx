@@ -112,13 +112,13 @@ const DashboardRouter = () => {
               الطلاب
             </Button>
             <Button
-              variant={isActive("/dashboard/quizzes/manage") ? "default" : "ghost"}
+              variant={isActive("/dashboard/exams") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
                 isActive("/dashboard/quizzes/manage")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
                   : ""
               }`}
-              onClick={() => navigate("/dashboard/quizzes/manage")}
+              onClick={() => navigate("/dashboard/exams")}
             >
               <BookOpen className="ml-2 rtl-flip" />
               الاختبارات

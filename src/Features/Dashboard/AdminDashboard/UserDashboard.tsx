@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Users } from "lucide-react";
+import { Loader2, Plus, Users } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTeachers } from "./services/TeacherService";
 import { motion } from "framer-motion";
@@ -24,14 +24,17 @@ const UserDashboard = () => {
     queryKey: ["teachers"],
     queryFn: getTeachers,
   });
+
   const [name, setName] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [password_confirmation, setCPassword] = useState<string>("");
   const [is_active, setIsActive] = useState(true);
   const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
+
   const queryClient = useQueryClient();
-  const { mutate } = useMutation({
+
+  const { mutate, isPending: isAdding } = useMutation({
     mutationFn: addNewTeacher,
     onSuccess: () => {
       setIsAddTeacherOpen(false);
@@ -47,9 +50,8 @@ const UserDashboard = () => {
   }
 
   if (isPending) {
-    // Spinner replaces the loading text, with blur behind the spinner container only
     return (
-      <div className="py-8 flex  justify-center items-center h-full w-full  rounded-md max-w-md mx-auto">
+      <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
         <svg
           className="animate-spin h-10 w-10 text-purple-600"
           xmlns="http://www.w3.org/2000/svg"
@@ -135,7 +137,8 @@ const UserDashboard = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">
-                      {teacher.students_count || 0} طالب | {teacher.exams_count || 0} اختبار
+                      {teacher.students_count || 0} طالب |{" "}
+                      {teacher.exams_count || 0} اختبار
                     </span>
                   </div>
                 </motion.div>
@@ -225,8 +228,15 @@ const UserDashboard = () => {
               >
                 إلغاء
               </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "جاري الإضافة..." : "إضافة المعلم"}
+              <Button type="submit" disabled={isAdding}>
+                {isAdding ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    جاري الإضافة...
+                  </>
+                ) : (
+                  "إضافة المعلم"
+                )}
               </Button>
             </DialogFooter>
           </form>

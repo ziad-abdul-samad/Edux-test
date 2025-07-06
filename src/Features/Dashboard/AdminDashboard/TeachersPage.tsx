@@ -1,6 +1,14 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Key, Search, Trash2, Users, Loader2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Key,
+  Search,
+  Trash2,
+  Users,
+  Loader2,
+  Edit,
+} from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTeachers } from "./services/TeacherService";
 import { motion } from "framer-motion";
@@ -19,22 +27,51 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { changeActiveTeacherFunc } from "./services/ChangeActiveTeacher";
+import { UpdateTeacher } from "./services/UpdateTeacher";
 
 const TeachersPage = () => {
   const [teacherToDelete, setTeacherToDelete] = useState<number | null>(null);
+  const [editDialogOpenId, setEditDialogOpenId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loadingIds, setLoadingIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
 
-  // Fetch teachers
   const { data, isPending, error } = useQuery({
     queryKey: ["teachers"],
     queryFn: getTeachers,
   });
 
-  // Delete teacher mutation
+  const { mutate: updateTeacher, isPending: isUpdating } = useMutation({
+    mutationFn: UpdateTeacher,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+      toast({
+        title: "تم التحديث",
+        description: "تم تعديل بيانات المعلم بنجاح",
+      });
+      setEditDialogOpenId(null);
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في تعديل بيانات المعلم",
+        variant: "destructive",
+      });
+    },
+  });
   const { mutate: removeTeacher } = useMutation({
     mutationFn: deleteTeacher,
     onSuccess: () => {
@@ -54,10 +91,14 @@ const TeachersPage = () => {
     },
   });
 
-  // Toggle active status mutation
   const { mutate: toggleActive } = useMutation({
-    mutationFn: ({ teacherId, isActive }: { teacherId: number; isActive: boolean }) =>
-      changeActiveTeacherFunc(teacherId, isActive),
+    mutationFn: ({
+      teacherId,
+      isActive,
+    }: {
+      teacherId: number;
+      isActive: boolean;
+    }) => changeActiveTeacherFunc(teacherId, isActive),
     onMutate: ({ teacherId }) => {
       setLoadingIds((prev) => [...prev, teacherId]);
     },
@@ -85,9 +126,8 @@ const TeachersPage = () => {
   }
 
   if (isPending) {
-    // Spinner with blur background container like UserDashboard
     return (
-      <div className="py-8 flex justify-center items-center h-full w-full   rounded-md max-w-md mx-auto">
+      <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
         <svg
           className="animate-spin h-10 w-10 text-purple-600"
           xmlns="http://www.w3.org/2000/svg"
@@ -122,7 +162,7 @@ const TeachersPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">إدارة المعلمين</h1>
+        <h1 className="md:text-3xl text-lg font-bold">إدارة المعلمين</h1>
         <Link to="/dashboard/manage-passwords">
           <Button variant="outline">
             <Key className="ml-2 rtl-flip" size={16} />
@@ -161,7 +201,9 @@ const TeachersPage = () => {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-[14px] md:text-lg">{teacher.name}</p>
+                      <p className="font-medium text-[14px] md:text-lg">
+                        {teacher.name}
+                      </p>
                       <Badge
                         variant={teacher.is_active ? "outline" : "destructive"}
                         className={
@@ -174,8 +216,12 @@ const TeachersPage = () => {
                       </Badge>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 ">
-                    <Button className="cursor-default" variant="outline" size="sm">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      className="cursor-default"
+                      variant="outline"
+                      size="sm"
+                    >
                       <Users className="ml-2 h-4 w-4" />
                       {teacher.students_count} طالب
                     </Button>
@@ -199,6 +245,17 @@ const TeachersPage = () => {
                     <Button
                       variant="ghost"
                       size="icon"
+                      onClick={() => {
+                        setEditName(teacher.name);
+                        setEditUsername(teacher.username);
+                        setEditDialogOpenId(teacher.id);
+                      }}
+                    >
+                      <Edit size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => setTeacherToDelete(teacher.id)}
                     >
@@ -212,6 +269,7 @@ const TeachersPage = () => {
         </div>
       </div>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={teacherToDelete !== null}
         onOpenChange={(open) => !open && setTeacherToDelete(null)}
@@ -241,6 +299,65 @@ const TeachersPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Teacher Dialog */}
+      <Dialog
+        open={editDialogOpenId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditDialogOpenId(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تعديل بيانات المعلم</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label htmlFor="edit-name">اسم المعلم</Label>
+              <Input
+                className="mt-2"
+                id="edit-name"
+                placeholder={editName}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-username">اسم المستخدم</Label>
+              <Input
+                className="mt-2"
+                id="edit-username"
+                placeholder={editUsername}
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-4">
+            <Button
+              disabled={isUpdating}
+              onClick={() => {
+                if (!editName || !editUsername || editDialogOpenId === null)
+                  return;
+                updateTeacher({
+                  name: editName,
+                  username: editUsername,
+                  id: editDialogOpenId,
+                });
+              }}
+            >
+              {isUpdating ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              حفظ التغييرات
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
