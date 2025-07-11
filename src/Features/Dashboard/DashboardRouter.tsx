@@ -16,6 +16,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import TeachersPage from "./AdminDashboard/TeachersPage";
 import StudentsPage from "./TeacherDashboard/StudentsPage";
+import ExamsPage from "./TeacherDashboard/ExamsPage";
 
 const DashboardRouter = () => {
   const navigate = useNavigate();
@@ -39,11 +40,10 @@ const DashboardRouter = () => {
     navigate("/");
   };
 
-  const isActive = (path: string) => {
-    return (
-      location.pathname === path || location.pathname.startsWith(`${path}/`)
-    );
-  };
+  const isActive = (path: string) =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`);
+
+  const isExact = (path: string) => location.pathname === path;
 
   const renderNavItems = () => {
     switch (role) {
@@ -52,12 +52,10 @@ const DashboardRouter = () => {
           <>
             <Button
               variant={
-                isActive("/dashboard") && !isActive("/dashboard/teachers")
-                  ? "default"
-                  : "ghost"
+                isExact("/dashboard") ? "default" : "ghost"
               }
               className={`justify-start w-full text-right ${
-                isActive("/dashboard") && !isActive("/dashboard/teachers")
+                isExact("/dashboard")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
                   : ""
               }`}
@@ -84,13 +82,9 @@ const DashboardRouter = () => {
         return (
           <>
             <Button
-              variant={
-                isActive("/dashboard") && !isActive("/dashboard/students")
-                  ? "default"
-                  : "ghost"
-              }
+              variant={isExact("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard") && !isActive("/dashboard/students")
+                isExact("/dashboard")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
                   : ""
               }`}
@@ -114,7 +108,7 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/exams") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/quizzes/manage")
+                isActive("/dashboard/exams")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
                   : ""
               }`}
@@ -221,6 +215,7 @@ const DashboardRouter = () => {
           <Routes>
             <Route path="/" element={<TeacherDashboard />} />
             <Route path="students" element={<StudentsPage />} />
+            <Route path="exams" element={<ExamsPage />} />
           </Routes>
         );
       case "student":
