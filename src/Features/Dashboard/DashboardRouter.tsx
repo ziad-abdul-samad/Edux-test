@@ -17,21 +17,25 @@ import { Separator } from "@/components/ui/separator";
 import TeachersPage from "./AdminDashboard/TeachersPage";
 import StudentsPage from "./TeacherDashboard/StudentsPage";
 import ExamsPage from "./TeacherDashboard/ExamsPage";
+import { useQuery } from "@tanstack/react-query";
+import { LoginInfo } from "../Login/services/LoginInfo";
+import CreateExamPage from "./TeacherDashboard/CreateExamPage";
 
 const DashboardRouter = () => {
+  // const { data } = useQuery({
+  //     queryKey: ["logininfo"],
+  //     queryFn: LoginInfo,
+  //   });
   const navigate = useNavigate();
   const location = useLocation();
   const [role, setRole] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
-    const storedUsername = localStorage.getItem("username");
     if (!storedRole) {
       navigate("/login");
     } else {
       setRole(storedRole);
-      setUsername(storedUsername);
     }
   }, [navigate]);
 
@@ -51,9 +55,7 @@ const DashboardRouter = () => {
         return (
           <>
             <Button
-              variant={
-                isExact("/dashboard") ? "default" : "ghost"
-              }
+              variant={isExact("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
                 isExact("/dashboard")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
@@ -216,6 +218,7 @@ const DashboardRouter = () => {
             <Route path="/" element={<TeacherDashboard />} />
             <Route path="students" element={<StudentsPage />} />
             <Route path="exams" element={<ExamsPage />} />
+            <Route path="exams/create" element={<CreateExamPage />} />
           </Routes>
         );
       case "student":
@@ -250,7 +253,7 @@ const DashboardRouter = () => {
           <div className="flex items-center gap-2 mb-4 p-2 bg-purple-50 rounded-lg">
             <User className="rtl-flip text-purple-700" />
             <div>
-              <p className="font-medium">{username || "User"}</p>
+              <p className="font-medium">{"User"}</p>
               <p className="text-sm text-muted-foreground">
                 {role === "user"
                   ? "مدير النظام"

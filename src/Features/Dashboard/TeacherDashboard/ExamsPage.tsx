@@ -3,9 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus, Eye, EyeOff, Clock, Edit, Calendar } from "lucide-react";
+import {
+  Plus,
+  Eye,
+  EyeOff,
+  Clock,
+  Edit,
+  Calendar,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GetExams } from "./services/GetExams";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -17,28 +26,59 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Exam } from "./types/Exams";
 import { ShowExam } from "./services/ShowExam";
+import { DeleteExam } from "./services/DeleteExam";
+import { AlertDialog } from "@radix-ui/react-alert-dialog";
+import {
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ExamsPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedExamId, setSelectedExamId] = useState<number | null>(null);
   const [isExamDetailsOpen, setIsExamDetailsOpen] = useState(false);
+  const [examToDelete, setExamToDelete] = useState<number | null>(null);
+  // Delete exam mutation
+  const queryClient = useQueryClient();
+  const IMAGE_BASE_URL = "https://edux.site/uploads/questions_images/";
 
-  const { data: examsData, isPending, error } = useQuery({
+  const { mutate: removeExam } = useMutation({
+    mutationFn: DeleteExam,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["examsData"] });
+      setExamToDelete(null);
+      toast({
+        title: "تم حذف الطالب",
+        description: "تم حذف الطالب وجميع بياناته من النظام بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء محاولة حذف الطالب",
+        variant: "destructive",
+      });
+    },
+  });
+  const {
+    data: examsData,
+    isPending,
+    error,
+  } = useQuery({
     queryKey: ["examsData"],
     queryFn: GetExams,
   });
 
   const { data: examDetails } = useQuery({
-    queryKey: ["examDetails", selectedExamId],
+    queryKey: ["examsData", selectedExamId],
     queryFn: () => (selectedExamId ? ShowExam(selectedExamId) : null),
     enabled: !!selectedExamId,
   });
@@ -121,7 +161,7 @@ const ExamsPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">إدارة الاختبارات</h1>
         <Button
-          onClick={() => navigate("/dashboard/quizzes/create")}
+          onClick={() => navigate("/dashboard/exams/create")}
           className="bg-purple-600 hover:bg-purple-700"
         >
           <Plus className="ml-2 rtl-flip" size={16} />
@@ -145,7 +185,7 @@ const ExamsPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <Card className="p-4 hover:shadow-md transition-shadow">
+                <Card className="p-4 hover:shadow-md transition-shadow relative">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -155,6 +195,14 @@ const ExamsPage = () => {
                         >
                           {examStatus.label}
                         </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 absolute left-3  hover:text-red-700 hover:bg-red-50 self-start"
+                          onClick={() => setExamToDelete(exam.id)}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
                       </div>
                       <p className="text-sm text-gray-500">
                         {exam.questions_count} سؤال |{" "}
@@ -166,40 +214,24 @@ const ExamsPage = () => {
                           <span>{exam.duration_minutes} دقيقة</span>
                         </div>
                       )}
-                      {exam.is_scheduled === 1 && (exam.start_at || exam.end_at) && (
-                        <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
-                          <Calendar className="h-3 w-3" />
-                          <span>
-                            {exam.start_at &&
-                              format(new Date(exam.start_at), "dd/MM/yyyy", {
-                                locale: ar,
-                              })}
-                            {exam.start_at && exam.end_at && " - "}
-                            {exam.end_at &&
-                              format(new Date(exam.end_at), "dd/MM/yyyy", {
-                                locale: ar,
-                              })}
-                          </span>
-                        </div>
-                      )}
+                      {exam.is_scheduled === 1 &&
+                        (exam.start_at || exam.end_at) && (
+                          <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
+                            <Calendar className="h-3 w-3" />
+                            <span>
+                              {exam.start_at &&
+                                format(new Date(exam.start_at), "dd/MM/yyyy", {
+                                  locale: ar,
+                                })}
+                              {exam.start_at && exam.end_at && " - "}
+                              {exam.end_at &&
+                                format(new Date(exam.end_at), "dd/MM/yyyy", {
+                                  locale: ar,
+                                })}
+                            </span>
+                          </div>
+                        )}
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          ...
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            navigate(`/dashboard/quizzes/edit/${exam.id}`)
-                          }
-                        >
-                          <Edit className="ml-2 h-4 w-4" />
-                          تعديل الاختبار
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
                   <div className="mt-4 flex justify-end gap-2">
                     <Button
@@ -211,18 +243,12 @@ const ExamsPage = () => {
                     <Button
                       variant="default"
                       className="bg-purple-600 hover:bg-purple-700"
+                      onClick={() =>
+                        navigate(`/dashboard/quizzes/edit/${exam.id}`)
+                      }
                     >
-                      {exam.is_active ? (
-                        <>
-                          <EyeOff className="ml-2 h-4 w-4" />
-                          إخفاء
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="ml-2 h-4 w-4" />
-                          نشر
-                        </>
-                      )}
+                      <Edit className="ml-2 h-4 w-4" />
+                      تعديل
                     </Button>
                   </div>
                 </Card>
@@ -236,8 +262,12 @@ const ExamsPage = () => {
         {exam && (
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
             <DialogHeader>
-              <DialogTitle>{exam.title}</DialogTitle>
-              <DialogDescription>تفاصيل الاختبار</DialogDescription>
+              <DialogTitle className="text-right mt-5">
+                {exam.title}
+              </DialogTitle>
+              <DialogDescription className="text-right">
+                تفاصيل الاختبار
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
@@ -318,7 +348,7 @@ const ExamsPage = () => {
                         {question.image && (
                           <div className="my-2">
                             <img
-                              src={question.image}
+                              src={`${IMAGE_BASE_URL}${question.image}`}
                               alt={`صورة للسؤال ${index + 1}`}
                               className="max-h-40 rounded-md"
                             />
@@ -348,11 +378,16 @@ const ExamsPage = () => {
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsExamDetailsOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsExamDetailsOpen(false)}
+              >
                 إغلاق
               </Button>
               <Button
-                onClick={() => navigate(`/dashboard/quizzes/edit/${selectedExamId}`)}
+                onClick={() =>
+                  navigate(`/dashboard/quizzes/edit/${selectedExamId}`)
+                }
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 <Edit className="ml-2 h-4 w-4" />
@@ -362,6 +397,35 @@ const ExamsPage = () => {
           </DialogContent>
         )}
       </Dialog>
+      <AlertDialog
+        open={examToDelete !== null}
+        onOpenChange={(open) => !open && setExamToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-right">
+              تأكيد حذف الاختبار
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-right">
+              هل أنت متأكد من أنك تريد حذف هذا الاختبار من قائمة اختباراتك؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={() => {
+                if (examToDelete) {
+                  removeExam(examToDelete);
+                }
+              }}
+            >
+              <AlertTriangle className="ml-2 h-4 w-4" />
+              حذف الاختبار
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
