@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Plus,
-  Eye,
-  EyeOff,
+  Loader2,
   Clock,
   Edit,
   Calendar,
@@ -46,7 +45,8 @@ const ExamsPage = () => {
   const [selectedExamId, setSelectedExamId] = useState<number | null>(null);
   const [isExamDetailsOpen, setIsExamDetailsOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<number | null>(null);
-  // Delete exam mutation
+  const [loadingExamId, setLoadingExamId] = useState<number | null>(null);
+  
   const queryClient = useQueryClient();
   const IMAGE_BASE_URL = "https://edux.site";
 
@@ -56,18 +56,19 @@ const ExamsPage = () => {
       queryClient.invalidateQueries({ queryKey: ["examsData"] });
       setExamToDelete(null);
       toast({
-        title: "تم حذف الطالب",
-        description: "تم حذف الطالب وجميع بياناته من النظام بنجاح",
+        title: "تم حذف الاختبار",
+        description: "تم حذف الاختبار بنجاح",
       });
     },
     onError: () => {
       toast({
         title: "خطأ",
-        description: "حدث خطأ أثناء محاولة حذف الطالب",
+        description: "حدث خطأ أثناء محاولة حذف الاختبار",
         variant: "destructive",
       });
     },
   });
+
   const {
     data: examsData,
     isPending,
@@ -77,9 +78,15 @@ const ExamsPage = () => {
     queryFn: GetExams,
   });
 
-  const { data: examDetails } = useQuery({
-    queryKey: ["examsData", selectedExamId],
-    queryFn: () => (selectedExamId ? ShowExam(selectedExamId) : null),
+  const { 
+    data: examDetails,
+    isFetching: isFetchingExamDetails 
+  } = useQuery({
+    queryKey: ["examDetails", selectedExamId],
+    queryFn: () => {
+      if (!selectedExamId) throw new Error("Exam ID is required");
+      return ShowExam(selectedExamId);
+    },
     enabled: !!selectedExamId,
   });
 
@@ -123,13 +130,21 @@ const ExamsPage = () => {
   };
 
   const handleViewExamDetails = (examId: number) => {
+    setLoadingExamId(examId);
     setSelectedExamId(examId);
     setIsExamDetailsOpen(true);
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsExamDetailsOpen(open);
+    if (!open) {
+      setLoadingExamId(null);
+    }
+  };
+
   if (isPending) {
     return (
-      <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
+      <div className="py-8 flex justify-center items-center h-full w-full   rounded-md max-w-md mx-auto">
         <svg
           className="animate-spin h-10 w-10 text-purple-600"
           xmlns="http://www.w3.org/2000/svg"
@@ -198,7 +213,7 @@ const ExamsPage = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-500 absolute left-3  hover:text-red-700 hover:bg-red-50 self-start"
+                          className="text-red-500 absolute left-3 hover:text-red-700 hover:bg-red-50 self-start"
                           onClick={() => setExamToDelete(exam.id)}
                         >
                           <Trash2 size={16} />
@@ -237,8 +252,13 @@ const ExamsPage = () => {
                     <Button
                       variant="outline"
                       onClick={() => handleViewExamDetails(exam.id)}
+                      disabled={loadingExamId === exam.id}
                     >
-                      تفاصيل
+                      {loadingExamId === exam.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "تفاصيل"
+                      )}
                     </Button>
                     <Button
                       variant="default"
@@ -258,145 +278,150 @@ const ExamsPage = () => {
         )}
       </div>
 
-      <Dialog open={isExamDetailsOpen} onOpenChange={setIsExamDetailsOpen}>
-        {exam && (
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
-            <DialogHeader>
-              <DialogTitle className="text-right mt-5">
-                {exam.title}
-              </DialogTitle>
-              <DialogDescription className="text-right">
-                تفاصيل الاختبار
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <div>
-                <h3 className="font-medium text-sm">الوصف</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  {exam.description || "لا يوجد وصف"}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-medium text-sm">الحالة</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {exam.is_active ? "منشور" : "مخفي"}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-sm">عدد الأسئلة</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {exam.questions.length}
-                  </p>
-                </div>
-
-                {exam.duration_minutes && (
-                  <div>
-                    <h3 className="font-medium text-sm">مدة الاختبار</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {exam.duration_minutes} دقيقة
-                    </p>
-                  </div>
-                )}
-
-                {exam.start_at && (
-                  <div>
-                    <h3 className="font-medium text-sm">تاريخ البدء</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {format(new Date(exam.start_at), "PPP", { locale: ar })}
-                    </p>
-                  </div>
-                )}
-
-                {exam.end_at && (
-                  <div>
-                    <h3 className="font-medium text-sm">تاريخ الانتهاء</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {format(new Date(exam.end_at), "PPP", { locale: ar })}
-                    </p>
-                  </div>
-                )}
-
-                <div>
-                  <h3 className="font-medium text-sm">مراجعة الإجابات</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {exam.allow_review ? "مسموح" : "غير مسموح"}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-sm">تاريخ الإنشاء</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {format(new Date(exam.created_at), "PPP", { locale: ar })}
-                  </p>
-                </div>
-              </div>
-
-              {exam.questions.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="font-medium mb-2">الأسئلة</h3>
-                  <div className="space-y-4">
-                    {exam.questions.map((question, index) => (
-                      <div key={question.id} className="border rounded-md p-3">
-                        <p className="font-medium">
-                          سؤال {index + 1}: {question.text}
-                        </p>
-
-                        {question.image && (
-                          <div className="my-2">
-                            <img
-                              src={`${IMAGE_BASE_URL}${question.image}`}
-                              alt={`صورة للسؤال ${index + 1}`}
-                              className="max-h-40 rounded-md"
-                            />
-                          </div>
-                        )}
-
-                        <div className="mt-2 space-y-1">
-                          {question.answers.map((answer, answerIndex) => (
-                            <div
-                              key={answer.id}
-                              className={`text-sm p-2 rounded-md ${
-                                answer.is_correct
-                                  ? "bg-green-50 text-green-700"
-                                  : "bg-gray-50"
-                              }`}
-                            >
-                              {answerIndex + 1}. {answer.text}
-                              {answer.is_correct && " ✓"}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+      <Dialog open={isExamDetailsOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
+          {isFetchingExamDetails ? (
+            <div className="flex justify-center items-center h-40">
+              <Loader2 className="animate-spin h-8 w-8 text-purple-600" />
             </div>
+          ) : exam ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-right mt-5">
+                  {exam.title}
+                </DialogTitle>
+                <DialogDescription className="text-right">
+                  تفاصيل الاختبار
+                </DialogDescription>
+              </DialogHeader>
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsExamDetailsOpen(false)}
-              >
-                إغلاق
-              </Button>
-              <Button
-                onClick={() =>
-                  navigate(`/dashboard/exams/edit/${exam.id}`)
-                }
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                <Edit className="ml-2 h-4 w-4" />
-                تحرير الاختبار
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        )}
+              <div className="space-y-4 py-4">
+                <div>
+                  <h3 className="font-medium text-sm">الوصف</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {exam.description || "لا يوجد وصف"}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-medium text-sm">الحالة</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {exam.is_active ? "منشور" : "مخفي"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium text-sm">عدد الأسئلة</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {exam.questions.length}
+                    </p>
+                  </div>
+
+                  {exam.duration_minutes && (
+                    <div>
+                      <h3 className="font-medium text-sm">مدة الاختبار</h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {exam.duration_minutes} دقيقة
+                      </p>
+                    </div>
+                  )}
+
+                  {exam.start_at && (
+                    <div>
+                      <h3 className="font-medium text-sm">تاريخ البدء</h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {format(new Date(exam.start_at), "PPP", { locale: ar })}
+                      </p>
+                    </div>
+                  )}
+
+                  {exam.end_at && (
+                    <div>
+                      <h3 className="font-medium text-sm">تاريخ الانتهاء</h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {format(new Date(exam.end_at), "PPP", { locale: ar })}
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <h3 className="font-medium text-sm">مراجعة الإجابات</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {exam.allow_review ? "مسموح" : "غير مسموح"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium text-sm">تاريخ الإنشاء</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {format(new Date(exam.created_at), "PPP", { locale: ar })}
+                    </p>
+                  </div>
+                </div>
+
+                {exam.questions.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="font-medium mb-2">الأسئلة</h3>
+                    <div className="space-y-4">
+                      {exam.questions.map((question, index) => (
+                        <div key={question.id} className="border rounded-md p-3">
+                          <p className="font-medium">
+                            سؤال {index + 1}: {question.text}
+                          </p>
+
+                          {question.image && (
+                            <div className="my-2">
+                              <img
+                                src={`${IMAGE_BASE_URL}${question.image}`}
+                                alt={`صورة للسؤال ${index + 1}`}
+                                className="max-h-40 rounded-md"
+                              />
+                            </div>
+                          )}
+
+                          <div className="mt-2 space-y-1">
+                            {question.answers.map((answer, answerIndex) => (
+                              <div
+                                key={answer.id}
+                                className={`text-sm p-2 rounded-md ${
+                                  answer.is_correct
+                                    ? "bg-green-50 text-green-700"
+                                    : "bg-gray-50"
+                                }`}
+                              >
+                                {answerIndex + 1}. {answer.text}
+                                {answer.is_correct && " ✓"}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsExamDetailsOpen(false)}
+                >
+                  إغلاق
+                </Button>
+                <Button
+                  onClick={() => navigate(`/dashboard/exams/edit/${exam.id}`)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Edit className="ml-2 h-4 w-4" />
+                  تحرير الاختبار
+                </Button>
+              </DialogFooter>
+            </>
+          ) : null}
+        </DialogContent>
       </Dialog>
+
       <AlertDialog
         open={examToDelete !== null}
         onOpenChange={(open) => !open && setExamToDelete(null)}

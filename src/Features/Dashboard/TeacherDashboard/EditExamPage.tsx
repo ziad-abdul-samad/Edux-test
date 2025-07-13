@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Trash,
@@ -679,9 +681,19 @@ const EditExamPage = () => {
           size="lg"
           onClick={handleSubmit}
           className="bg-purple-600 hover:bg-purple-700"
+          disabled={mutation.isPending} // Disable button during submission
         >
-          حفظ التعديلات
-          <ArrowRight className="mr-2 rtl-flip" size={16} />
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              جاري الحفظ...
+            </>
+          ) : (
+            <>
+              حفظ التعديلات
+              <ArrowRight className="mr-2 rtl-flip" size={16} />
+            </>
+          )}
         </Button>
       </div>
     </div>

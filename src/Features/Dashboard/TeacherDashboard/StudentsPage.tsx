@@ -65,7 +65,7 @@ const StudentPage = () => {
       queryClient.invalidateQueries({ queryKey: ["teachersDash"] });
       toast({
         title: "تم التحديث",
-        description: "تم تعديل بيانات المعلم بنجاح",
+        description: "تم تعديل بيانات الطالب بنجاح",
       });
       setEditDialogOpenId(null);
     },
