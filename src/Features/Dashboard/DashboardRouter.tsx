@@ -20,6 +20,7 @@ import ExamsPage from "./TeacherDashboard/ExamsPage";
 import { useQuery } from "@tanstack/react-query";
 import { LoginInfo } from "../Login/services/LoginInfo";
 import CreateExamPage from "./TeacherDashboard/CreateExamPage";
+import EditExamPage from "./TeacherDashboard/EditExamPage";
 
 const DashboardRouter = () => {
   // const { data } = useQuery({
@@ -219,6 +220,7 @@ const DashboardRouter = () => {
             <Route path="students" element={<StudentsPage />} />
             <Route path="exams" element={<ExamsPage />} />
             <Route path="exams/create" element={<CreateExamPage />} />
+            <Route path="exams/edit/:examId" element={<EditExamPage />} />
           </Routes>
         );
       case "student":

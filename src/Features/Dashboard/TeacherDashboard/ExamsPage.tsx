@@ -48,7 +48,7 @@ const ExamsPage = () => {
   const [examToDelete, setExamToDelete] = useState<number | null>(null);
   // Delete exam mutation
   const queryClient = useQueryClient();
-  const IMAGE_BASE_URL = "https://edux.site/uploads/questions_images/";
+  const IMAGE_BASE_URL = "https://edux.site";
 
   const { mutate: removeExam } = useMutation({
     mutationFn: DeleteExam,
@@ -244,7 +244,7 @@ const ExamsPage = () => {
                       variant="default"
                       className="bg-purple-600 hover:bg-purple-700"
                       onClick={() =>
-                        navigate(`/dashboard/quizzes/edit/${exam.id}`)
+                        navigate(`/dashboard/exams/edit/${exam.id}`)
                       }
                     >
                       <Edit className="ml-2 h-4 w-4" />
@@ -386,7 +386,7 @@ const ExamsPage = () => {
               </Button>
               <Button
                 onClick={() =>
-                  navigate(`/dashboard/quizzes/edit/${selectedExamId}`)
+                  navigate(`/dashboard/exams/edit/${exam.id}`)
                 }
                 className="bg-purple-600 hover:bg-purple-700"
               >
