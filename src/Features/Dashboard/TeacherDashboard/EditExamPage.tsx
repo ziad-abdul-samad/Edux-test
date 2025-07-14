@@ -90,7 +90,7 @@ const EditExamPage = () => {
           text: q.text,
           imageUrl: q.image || "",
           imageFile: null,
-          imagePreview: q.image ? `https://edux.site/storage/${q.image}` : "",
+          imagePreview: q.image ? `https://edux.site/${q.image}` : "",
           choices: q.answers.map((a) => ({
             id: `q${q.id}-c${a.id}`,
             text: a.text,

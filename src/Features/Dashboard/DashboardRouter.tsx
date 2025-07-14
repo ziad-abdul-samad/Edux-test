@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Routes, useNavigate, Route, useLocation } from "react-router-dom";
 import UserDashboard from "./AdminDashboard/UserDashboard";
 import TeacherDashboard from "./TeacherDashboard/TeacherDashboard";
-import StudentDashboard from "./StudentDashboard";
+import StudentDashboard from "./StudentDashboard/StudentDashboard";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import {
@@ -21,6 +21,9 @@ import { useQuery } from "@tanstack/react-query";
 import { LoginInfo } from "../Login/services/LoginInfo";
 import CreateExamPage from "./TeacherDashboard/CreateExamPage";
 import EditExamPage from "./TeacherDashboard/EditExamPage";
+import StudentExamsPage from "./StudentDashboard/StudentExamsPage";
+import TakeExam from "./StudentDashboard/TakeExam";
+import Subscriptionspage from "./StudentDashboard/Subscriptionspage";
 
 const DashboardRouter = () => {
   // const { data } = useQuery({
@@ -138,25 +141,25 @@ const DashboardRouter = () => {
         return (
           <>
             <Button
-              variant={isActive("/dashboard/student") ? "default" : "ghost"}
+              variant={isActive("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
                 isActive("/dashboard/student")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
                   : ""
               }`}
-              onClick={() => navigate("/dashboard/student")}
+              onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="ml-2 rtl-flip" />
               الرئيسية
             </Button>
             <Button
-              variant={isActive("/dashboard/quizzes") ? "default" : "ghost"}
+              variant={isActive("/dashboard/exams") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
                 isActive("/dashboard/quizzes")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
                   : ""
               }`}
-              onClick={() => navigate("/dashboard/quizzes")}
+              onClick={() => navigate("/dashboard/exams")}
             >
               <BookOpen className="ml-2 rtl-flip" />
               الاختبارات
@@ -174,13 +177,13 @@ const DashboardRouter = () => {
               النتائج السابقة
             </Button>
             <Button
-              variant={isActive("/dashboard/my-teachers") ? "default" : "ghost"}
+              variant={isActive("/dashboard/subscriptions") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
                 isActive("/dashboard/my-teachers")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
                   : ""
               }`}
-              onClick={() => navigate("/dashboard/my-teachers")}
+              onClick={() => navigate("/dashboard/subscriptions")}
             >
               <Users className="ml-2 rtl-flip" />
               الاشتراكات
@@ -224,7 +227,15 @@ const DashboardRouter = () => {
           </Routes>
         );
       case "student":
-        return <StudentDashboard />;
+        return (
+          <Routes>
+            <Route path="/" element={<StudentDashboard />} />
+            <Route path="exams" element={<StudentExamsPage />} />
+            <Route path="exams/take/:examId" element={<TakeExam />} />
+            <Route path="subscriptions" element={<Subscriptionspage />} />
+          </Routes>
+        );
+
       default:
         return <div>Invalid role</div>;
     }

@@ -46,9 +46,9 @@ const ExamsPage = () => {
   const [isExamDetailsOpen, setIsExamDetailsOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<number | null>(null);
   const [loadingExamId, setLoadingExamId] = useState<number | null>(null);
-  
+
   const queryClient = useQueryClient();
-  const IMAGE_BASE_URL = "https://edux.site";
+  const IMAGE_BASE_URL = "https://edux.site/";
 
   const { mutate: removeExam } = useMutation({
     mutationFn: DeleteExam,
@@ -78,10 +78,7 @@ const ExamsPage = () => {
     queryFn: GetExams,
   });
 
-  const { 
-    data: examDetails,
-    isFetching: isFetchingExamDetails 
-  } = useQuery({
+  const { data: examDetails, isFetching: isFetchingExamDetails } = useQuery({
     queryKey: ["examDetails", selectedExamId],
     queryFn: () => {
       if (!selectedExamId) throw new Error("Exam ID is required");
@@ -252,13 +249,8 @@ const ExamsPage = () => {
                     <Button
                       variant="outline"
                       onClick={() => handleViewExamDetails(exam.id)}
-                      disabled={loadingExamId === exam.id}
                     >
-                      {loadingExamId === exam.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "تفاصيل"
-                      )}
+                      تفاصيل
                     </Button>
                     <Button
                       variant="default"
@@ -365,7 +357,10 @@ const ExamsPage = () => {
                     <h3 className="font-medium mb-2">الأسئلة</h3>
                     <div className="space-y-4">
                       {exam.questions.map((question, index) => (
-                        <div key={question.id} className="border rounded-md p-3">
+                        <div
+                          key={question.id}
+                          className="border rounded-md p-3"
+                        >
                           <p className="font-medium">
                             سؤال {index + 1}: {question.text}
                           </p>
