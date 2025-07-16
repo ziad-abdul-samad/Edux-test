@@ -22,11 +22,38 @@ const StudentExamsPage = () => {
   });
 
   if (isPending) {
-    return <div className="flex items-center justify-center min-h-screen">جاري التحميل...</div>;
+    return (
+      <div className="py-8 flex  justify-center items-center h-full w-full  rounded-md max-w-md mx-auto">
+        <svg
+          className="animate-spin h-10 w-10 text-purple-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-red-500 text-center mt-10">حدث خطأ أثناء جلب البيانات</div>;
+    return (
+      <div className="text-red-500 text-center mt-10">
+        حدث خطأ أثناء جلب البيانات
+      </div>
+    );
   }
 
   const exams = data?.data.exams.data || [];
@@ -71,13 +98,18 @@ const StudentExamsPage = () => {
                     <div className="flex justify-between">
                       <h3 className="font-medium">{exam.title}</h3>
                       {exam.duration_minutes && (
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1">
-                          <Timer className="h-3 w-3" /> {exam.duration_minutes} دقيقة
+                        <Badge
+                          variant="outline"
+                          className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1"
+                        >
+                          <Timer className="h-3 w-3" /> {exam.duration_minutes}{" "}
+                          دقيقة
                         </Badge>
                       )}
                     </div>
                     <p className="text-sm text-gray-500">
-                      {exam.questions_count} سؤال | {exam.teacher?.name ?? "المعلم"}
+                      {exam.questions_count} سؤال |{" "}
+                      {exam.teacher?.name ?? "المعلم"}
                     </p>
                     {exam.description && (
                       <p className="text-sm text-gray-500 mt-2">
@@ -87,7 +119,9 @@ const StudentExamsPage = () => {
                     {exam.is_scheduled === 1 && exam.start_at && (
                       <div className="mt-2 flex items-center text-sm">
                         <Clock className="h-3 w-3 text-purple-700 mr-1" />
-                        <span className="text-purple-700">الاختبار مجدول من {exam.start_at} إلى {exam.end_at}</span>
+                        <span className="text-purple-700">
+                          الاختبار مجدول من {exam.start_at} إلى {exam.end_at}
+                        </span>
                       </div>
                     )}
                   </div>

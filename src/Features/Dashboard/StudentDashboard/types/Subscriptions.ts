@@ -1,47 +1,34 @@
-export interface Exam {
-  id: number;
-  title: string;
-  attempt_limit: string;
-  description: string | null;
-  duration_minutes: number | null;
-  is_active: number;
-  allow_review: number;
-  is_scheduled: number;
-  start_at: string | null;
-  end_at: string | null;
+export interface StudentResultsByTeacherResponse {
+  data: {
+    student_id: number;
+    results_by_teacher: TeacherResult[];
+  };
+  message: string;
+  status: number;
+}
+
+export interface TeacherResult {
   teacher_id: number;
-  created_at: string;
-  updated_at: string;
+  teacher_name: string;
+  exam_stats: ExamStat[];
+  best_result: ExamStat;
+  average_percentage: number;
 }
 
-export interface PastResult {
-  id: number;
-  student_id: number;
-  exam_id: number;
-  question_id: number;
-  answer_id: number;
-  score: string;
-  total_questions: string;
-  created_at: string;
-  updated_at: string;
-  exam: Exam;
-}
-
-export interface BestOverallResult {
+export interface ExamStat {
   exam_id: number;
   exam_title: string;
   score: number;
   total_questions: number;
   percentage: number;
+  exam_details: ExamDetails;
 }
 
-export interface SubscriptionsResponse {
-  data: {
-    StudentAnswerCount: number;
-    bestOverallResult: BestOverallResult;
-    averagePercentage: number;
-    pastResults: PastResult[];
-  };
-  message: string;
-  status: number;
+export interface ExamDetails {
+  title: string;
+  description: string;
+  start_at: string | null;
+  end_at: string | null;
+  duration_minutes: number;
+  is_visible: boolean | null;
 }

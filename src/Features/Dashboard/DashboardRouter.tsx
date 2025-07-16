@@ -24,6 +24,9 @@ import EditExamPage from "./TeacherDashboard/EditExamPage";
 import StudentExamsPage from "./StudentDashboard/StudentExamsPage";
 import TakeExam from "./StudentDashboard/TakeExam";
 import Subscriptionspage from "./StudentDashboard/Subscriptionspage";
+import ResultsPage from "./StudentDashboard/ResultsPage";
+import LibraryPage from "./StudentDashboard/LibraryPage";
+import FilesPage from "./TeacherDashboard/FilesPage";
 
 const DashboardRouter = () => {
   // const { data } = useQuery({
@@ -177,7 +180,9 @@ const DashboardRouter = () => {
               النتائج السابقة
             </Button>
             <Button
-              variant={isActive("/dashboard/subscriptions") ? "default" : "ghost"}
+              variant={
+                isActive("/dashboard/subscriptions") ? "default" : "ghost"
+              }
               className={`justify-start w-full text-right ${
                 isActive("/dashboard/my-teachers")
                   ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
@@ -224,6 +229,7 @@ const DashboardRouter = () => {
             <Route path="exams" element={<ExamsPage />} />
             <Route path="exams/create" element={<CreateExamPage />} />
             <Route path="exams/edit/:examId" element={<EditExamPage />} />
+            <Route path="files" element={<FilesPage />} />
           </Routes>
         );
       case "student":
@@ -233,6 +239,8 @@ const DashboardRouter = () => {
             <Route path="exams" element={<StudentExamsPage />} />
             <Route path="exams/take/:examId" element={<TakeExam />} />
             <Route path="subscriptions" element={<Subscriptionspage />} />
+            <Route path="results" element={<ResultsPage />} />
+            <Route path="library" element={<LibraryPage />} />
           </Routes>
         );
 

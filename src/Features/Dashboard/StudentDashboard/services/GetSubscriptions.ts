@@ -1,7 +1,7 @@
-import { post } from "@/lib/apiClient";
-import { SubscriptionsResponse } from "../types/Subscriptions";
+import { ApiResponse, post } from "@/lib/apiClient";
+import { StudentResultsByTeacherResponse } from "../types/Subscriptions";
 
-export const GetSubscriptions = async (): Promise<SubscriptionsResponse> => {
-  const response = await post<SubscriptionsResponse>("/students/Subscriptions");
+export const GetSubs = async (): Promise<StudentResultsByTeacherResponse> => {
+  const response = await post<StudentResultsByTeacherResponse>("/students/Subscriptions");
   return response.data;
 };
