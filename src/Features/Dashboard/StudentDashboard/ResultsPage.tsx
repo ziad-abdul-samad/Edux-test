@@ -119,10 +119,10 @@ const ResultsPage = () => {
                     className="p-4"
                   >
                     <div className="mb-2">
-                      <h3 className="font-semibold text-lg">{exam.title}</h3>
-                      <p className="text-sm text-purple-600">
+                      <h3 className="font-semibold text-lg">اسم الاختبار: {""}{exam.title}</h3>
+                      {/* <p className="text-sm text-purple-600">
                         الطالب: {student.name} ({student.username})
-                      </p>
+                      </p> */}
                     </div>
 
                     <div className="bg-gray-50 rounded-md p-3 mt-3 flex justify-between items-center">

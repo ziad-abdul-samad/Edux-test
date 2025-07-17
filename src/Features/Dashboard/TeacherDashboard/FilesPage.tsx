@@ -36,11 +36,10 @@ const FilesLibrary = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const categories = Array.isArray(categoriesData?.data)
-    ? categoriesData.data
+  const categories = Array.isArray(categoriesData?.data?.data)
+    ? categoriesData.data.data
     : [];
-  const files = Array.isArray(filesData?.data) ? filesData.data : [];
-
+  const files = Array.isArray(filesData?.data?.data) ? filesData.data.data : [];
   // Filter files based on search and category
   const filteredFiles = files.filter((file) => {
     const filename = file.file || "";
@@ -59,6 +58,26 @@ const FilesLibrary = () => {
   if (categoriesLoading || filesLoading) {
     return <div>جاري التحميل...</div>;
   }
+  const cleanFileName = (fullPath: string) => {
+    // Step 1: Get the last part after "/"
+    const fileNameWithDate = fullPath.split("/").pop() || fullPath; // e.g. frame_20250715_081049.png
+
+    // Step 2: Split by first underscore
+    const underscoreIndex = fileNameWithDate.indexOf("_");
+
+    if (underscoreIndex === -1) {
+      // no underscore, return original name
+      return fileNameWithDate;
+    }
+
+    // Step 3: Extract the prefix before underscore and the extension after the last dot
+    const namePart = fileNameWithDate.substring(0, underscoreIndex); // "frame"
+    const extension = fileNameWithDate.substring(
+      fileNameWithDate.lastIndexOf(".")
+    ); // ".png"
+
+    return namePart + extension; // "frame.png"
+  };
 
   // Helper for icon based on file extension
   const getFileIcon = (filePath: string) => {
@@ -142,11 +161,12 @@ const FilesLibrary = () => {
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
                       {getFileIcon(file.file)}
-                      <div className="flex-1 overflow-hidden">
-                        <h3 className="font-medium truncate" title={file.file}>
-                          {file.file}
+                      <div className="flex-1 truncate ">
+                        <h3 className="font-medium" title={file.file}>
+                          {cleanFileName(file.file)}
                         </h3>
-                        <p className="text-xs text-gray-500">
+
+                        <p className="text-xs text-gray-500 truncate">
                           {file.files_category?.name}
                         </p>
                       </div>

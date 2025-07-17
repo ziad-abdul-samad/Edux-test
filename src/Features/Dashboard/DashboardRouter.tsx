@@ -29,13 +29,10 @@ import LibraryPage from "./StudentDashboard/LibraryPage";
 import FilesPage from "./TeacherDashboard/FilesPage";
 
 const DashboardRouter = () => {
-  // const { data } = useQuery({
-  //     queryKey: ["logininfo"],
-  //     queryFn: LoginInfo,
-  //   });
   const navigate = useNavigate();
   const location = useLocation();
   const [role, setRole] = useState<string | null>(null);
+  const [isLoadingRole, setIsLoadingRole] = useState(true); // 🆕 NEW
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
@@ -44,6 +41,7 @@ const DashboardRouter = () => {
     } else {
       setRole(storedRole);
     }
+    setIsLoadingRole(false); // 🆕 Always mark as resolved
   }, [navigate]);
 
   const handleLogout = () => {
@@ -51,10 +49,19 @@ const DashboardRouter = () => {
     navigate("/");
   };
 
-  const isActive = (path: string) =>
-    location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const isActive = (path: string) => {
+    if (path === "/dashboard" && role === "student") {
+      return location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+    }
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
 
-  const isExact = (path: string) => location.pathname === path;
+  const isExact = (path: string) => {
+    if (path === "/dashboard" && role === "student") {
+      return location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+    }
+    return location.pathname === path;
+  };
 
   const renderNavItems = () => {
     switch (role) {
@@ -64,9 +71,7 @@ const DashboardRouter = () => {
             <Button
               variant={isExact("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isExact("/dashboard")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isExact("/dashboard") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard")}
             >
@@ -76,9 +81,7 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/teachers") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/teachers")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isActive("/dashboard/teachers") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard/teachers")}
             >
@@ -93,9 +96,7 @@ const DashboardRouter = () => {
             <Button
               variant={isExact("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isExact("/dashboard")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isExact("/dashboard") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard")}
             >
@@ -105,9 +106,7 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/students") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/students")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isActive("/dashboard/students") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard/students")}
             >
@@ -117,9 +116,7 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/exams") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/exams")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isActive("/dashboard/exams") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard/exams")}
             >
@@ -129,9 +126,7 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/files") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/files")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isActive("/dashboard/files") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard/files")}
             >
@@ -144,11 +139,9 @@ const DashboardRouter = () => {
         return (
           <>
             <Button
-              variant={isActive("/dashboard") ? "default" : "ghost"}
+              variant={isExact("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/student")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isExact("/dashboard") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard")}
             >
@@ -158,9 +151,7 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/exams") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/quizzes")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isActive("/dashboard/exams") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard/exams")}
             >
@@ -170,9 +161,7 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/results") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/results")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isActive("/dashboard/results") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard/results")}
             >
@@ -180,13 +169,9 @@ const DashboardRouter = () => {
               النتائج السابقة
             </Button>
             <Button
-              variant={
-                isActive("/dashboard/subscriptions") ? "default" : "ghost"
-              }
+              variant={isActive("/dashboard/subscriptions") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/my-teachers")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isActive("/dashboard/subscriptions") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard/subscriptions")}
             >
@@ -196,9 +181,7 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/library") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/library")
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : ""
+                isActive("/dashboard/library") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
               }`}
               onClick={() => navigate("/dashboard/library")}
             >
@@ -243,16 +226,15 @@ const DashboardRouter = () => {
             <Route path="library" element={<LibraryPage />} />
           </Routes>
         );
-
       default:
         return <div>Invalid role</div>;
     }
   };
 
-  if (!role) {
+  if (isLoadingRole) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Loading...
+        جاري تحميل الحساب...
       </div>
     );
   }
