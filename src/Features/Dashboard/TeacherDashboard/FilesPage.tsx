@@ -1,8 +1,19 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { Search, File, FileText, FileImage, FileVideo } from "lucide-react";
-
+import {
+  Search,
+  File,
+  FileText,
+  FileImage,
+  FileVideo,
+  Plus,
+  Trash2,
+  Edit,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { getLibraryCategories } from "./services/getLibraryCategories";
 import { getPublishedFiles } from "./services/getPublishedFiles";
 
@@ -17,12 +28,96 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { addNewCategory } from "./services/categoryMutations";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { UpdateCategory } from "./services/UpdateCategory";
+import { DeleteCategory } from "./services/DeleteCategory";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { addNewFile } from "./services/AddNewFile";
 
 const FilesLibrary = () => {
+  //Add Category
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [name, setName] = useState<string>("");
+  const { mutate } = useMutation({
+    mutationFn: addNewCategory,
+    onSuccess: () => {
+      setIsAddCategoryOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["libraryCategories"] });
+    },
+    onError: (e) => {
+      console.error("Error adding student:", e);
+    },
+  });
+  //manage category
+  const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDialogOpenId, setEditDialogOpenId] = useState<number | null>(null);
+  const { mutate: updateCategory, isPending: isUpdating } = useMutation({
+    mutationFn: UpdateCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["libraryCategories"] });
+      toast({
+        title: "تم التحديث",
+        description: "تم تعديل بيانات التصنيف بنجاح",
+      });
+      setEditDialogOpenId(null);
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في تعديل بيانات التصنيف",
+        variant: "destructive",
+      });
+    },
+  });
+  // Delete students mutation
+  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
+
+  const { mutate: removeCategoty } = useMutation({
+    mutationFn: DeleteCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["libraryCategories"] });
+      setCategoryToDelete(null);
+      toast({
+        title: "تم حذف التصنيف",
+        description: "تم حذف التصنيف وجميع ملفاته من النظام بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء محاولة حذف التصنيف",
+        variant: "destructive",
+      });
+    },
+  });
   const FILES_BASE_URL = "https://edux.site/";
+  const queryClient = useQueryClient();
 
   // Fetch categories and files
-  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    isPending,
+  } = useQuery({
     queryKey: ["libraryCategories"],
     queryFn: getLibraryCategories,
   });
@@ -31,7 +126,22 @@ const FilesLibrary = () => {
     queryKey: ["publishedFiles"],
     queryFn: getPublishedFiles,
   });
-  console.log(filesData);
+  //Add file
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [selectedUploadCategoryId, setSelectedUploadCategoryId] = useState<
+    number | null
+  >(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const { mutate: addingFile } = useMutation({
+    mutationFn: addNewFile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["publishedFiles"] });
+    },
+    onError: (e) => {
+      console.error("Error adding student:", e);
+    },
+  });
   // Local state for filtering
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -105,6 +215,13 @@ const FilesLibrary = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">مكتبة الملفات</h1>
+        <div className="flex items-center gap-1">
+          <Button onClick={() => setIsUploadDialogOpen(true)}>رفع ملف</Button>
+
+          <Button variant="outline" onClick={() => setIsManageDialogOpen(true)}>
+            إدارة التصنيفات
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-4">
@@ -212,7 +329,10 @@ const FilesLibrary = () => {
                     <div className="flex items-center gap-3">
                       {getFileIcon(file.file)}
                       <div>
-                        <h3 className="font-medium">{file.file}</h3>
+                        <h3 className="font-medium">
+                          {" "}
+                          {cleanFileName(file.file)}
+                        </h3>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
                             {file.files_category?.name}
@@ -220,7 +340,7 @@ const FilesLibrary = () => {
                           <span>
                             تم الرفع:{" "}
                             {new Date(file.created_at).toLocaleDateString(
-                              "ar-EG"
+                              "EG-ar"
                             )}
                           </span>
                         </div>
@@ -245,6 +365,256 @@ const FilesLibrary = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إضافة طالب جديد</DialogTitle>
+            <DialogDescription>
+              ابحث عن طالب موجود أو قم بإنشاء طالب جديد
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              mutate({
+                name,
+              });
+            }}
+            className="space-y-4 py-2"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="name">الاسم</Label>
+              <Input
+                id="name"
+                placeholder="أدخل اسم التصنيف"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                type="text"
+                required
+              />
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setIsAddCategoryOpen(false)}
+              >
+                إلغاء
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "جاري الإضافة..." : "إضافة التصنيف"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-right mt-3">
+              إدارة التصنيفات
+            </DialogTitle>
+            <DialogDescription className="text-right mt-3">
+              عرض جميع التصنيفات المضافة
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setIsAddCategoryOpen(true)}>
+            <Plus className="ml-2 rtl-flip" size={16} />
+            إضافة تصنيف جديد
+          </Button>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {categories.length === 0 ? (
+              <p className="text-sm text-gray-500">لا توجد تصنيفات حالياً</p>
+            ) : (
+              categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="flex items-center justify-between border rounded-md px-3 py-2 text-sm bg-muted/5 hover:bg-muted/50"
+                >
+                  <span>{category.name}</span>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => setCategoryToDelete(category.id)}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditName(category.name);
+                        setEditDialogOpenId(category.id);
+                      }}
+                    >
+                      <Edit size={16} />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsManageDialogOpen(false)}
+            >
+              إغلاق
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={editDialogOpenId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditDialogOpenId(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تعديل اسم التصنيف</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label htmlFor="edit-name">اسم التصنيف</Label>
+              <Input
+                className="mt-2"
+                id="edit-name"
+                placeholder={editName}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-4">
+            <Button
+              disabled={isUpdating}
+              onClick={() => {
+                if (!editName || editDialogOpenId === null) return;
+                updateCategory({
+                  name: editName,
+                  id: editDialogOpenId,
+                });
+              }}
+            >
+              {isUpdating ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              حفظ التغييرات
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog
+        open={categoryToDelete !== null}
+        onOpenChange={(open) => !open && setCategoryToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>هل أنت متأكد من حذف التصنيف؟</AlertDialogTitle>
+            <AlertDialogDescription className="text-right">
+              سيتم حذف جميع الملفات التي تنتمي إلى هذا التصنيف أيضًا. هل تريد
+              التأكيد؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={() => {
+                if (categoryToDelete) {
+                  removeCategoty(categoryToDelete);
+                }
+              }}
+            >
+              <AlertTriangle className="ml-2 h-4 w-4" />
+              حذف التصنيف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>رفع ملف جديد</DialogTitle>
+      <DialogDescription>
+        اختر الملف والتصنيف الذي ينتمي إليه
+      </DialogDescription>
+    </DialogHeader>
+
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!selectedFile || !selectedUploadCategoryId) {
+          toast({
+            title: "خطأ",
+            description: "يرجى اختيار الملف والتصنيف",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("category_id", String(selectedUploadCategoryId));
+
+        addingFile(formData);
+        setIsUploadDialogOpen(false);
+        setSelectedFile(null);
+        setSelectedUploadCategoryId(null);
+      }}
+    >
+      <div className="space-y-2">
+        <Label htmlFor="file">اختر الملف</Label>
+        <Input
+          type="file"
+          id="file"
+          required
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            setSelectedFile(file || null);
+          }}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="category">اختر التصنيف</Label>
+        <Select
+          onValueChange={(value) => setSelectedUploadCategoryId(Number(value))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="اختر تصنيفًا" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={String(category.id)}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
+          إلغاء
+        </Button>
+        <Button type="submit">رفع</Button>
+      </DialogFooter>
+    </form>
+  </DialogContent>
+</Dialog>
+
     </div>
   );
 };
