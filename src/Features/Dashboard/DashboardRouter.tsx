@@ -33,7 +33,13 @@ const DashboardRouter = () => {
   const location = useLocation();
   const [role, setRole] = useState<string | null>(null);
   const [isLoadingRole, setIsLoadingRole] = useState(true); // 🆕 NEW
+  // In sidebar
+  const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) setUser(JSON.parse(userData));
+  }, []);
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
     if (!storedRole) {
@@ -51,14 +57,22 @@ const DashboardRouter = () => {
 
   const isActive = (path: string) => {
     if (path === "/dashboard" && role === "student") {
-      return location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+      return (
+        location.pathname === "/dashboard" ||
+        location.pathname === "/dashboard/"
+      );
     }
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    return (
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
   };
 
   const isExact = (path: string) => {
     if (path === "/dashboard" && role === "student") {
-      return location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+      return (
+        location.pathname === "/dashboard" ||
+        location.pathname === "/dashboard/"
+      );
     }
     return location.pathname === path;
   };
@@ -71,7 +85,9 @@ const DashboardRouter = () => {
             <Button
               variant={isExact("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isExact("/dashboard") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isExact("/dashboard")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard")}
             >
@@ -81,7 +97,9 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/teachers") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/teachers") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isActive("/dashboard/teachers")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard/teachers")}
             >
@@ -96,7 +114,9 @@ const DashboardRouter = () => {
             <Button
               variant={isExact("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isExact("/dashboard") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isExact("/dashboard")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard")}
             >
@@ -106,7 +126,9 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/students") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/students") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isActive("/dashboard/students")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard/students")}
             >
@@ -116,7 +138,9 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/exams") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/exams") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isActive("/dashboard/exams")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard/exams")}
             >
@@ -126,7 +150,9 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/files") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/files") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isActive("/dashboard/files")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard/files")}
             >
@@ -141,7 +167,9 @@ const DashboardRouter = () => {
             <Button
               variant={isExact("/dashboard") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isExact("/dashboard") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isExact("/dashboard")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard")}
             >
@@ -151,7 +179,9 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/exams") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/exams") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isActive("/dashboard/exams")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard/exams")}
             >
@@ -161,7 +191,9 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/results") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/results") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isActive("/dashboard/results")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard/results")}
             >
@@ -169,9 +201,13 @@ const DashboardRouter = () => {
               النتائج السابقة
             </Button>
             <Button
-              variant={isActive("/dashboard/subscriptions") ? "default" : "ghost"}
+              variant={
+                isActive("/dashboard/subscriptions") ? "default" : "ghost"
+              }
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/subscriptions") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isActive("/dashboard/subscriptions")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard/subscriptions")}
             >
@@ -181,7 +217,9 @@ const DashboardRouter = () => {
             <Button
               variant={isActive("/dashboard/library") ? "default" : "ghost"}
               className={`justify-start w-full text-right ${
-                isActive("/dashboard/library") ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : ""
+                isActive("/dashboard/library")
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : ""
               }`}
               onClick={() => navigate("/dashboard/library")}
             >
@@ -256,7 +294,7 @@ const DashboardRouter = () => {
           <div className="flex items-center gap-2 mb-4 p-2 bg-purple-50 rounded-lg">
             <User className="rtl-flip text-purple-700" />
             <div>
-              <p className="font-medium">{"User"}</p>
+              <p className="font-medium">{user}</p>
               <p className="text-sm text-muted-foreground">
                 {role === "user"
                   ? "مدير النظام"

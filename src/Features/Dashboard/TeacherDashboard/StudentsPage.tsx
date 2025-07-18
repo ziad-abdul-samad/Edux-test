@@ -50,7 +50,8 @@ const StudentPage = () => {
   const [editName, setEditName] = useState("");
   const [editUsername, setEditUsername] = useState("");
   const [editDialogOpenId, setEditDialogOpenId] = useState<number | null>(null);
-
+  const [isExistingStudent, setIsExistingStudent] = useState(false);
+  const [existingUsername, setExistingUsername] = useState("");
   const queryClient = useQueryClient();
 
   // Fetch students
@@ -103,23 +104,47 @@ const StudentPage = () => {
   const [password, setPassword] = useState<string>("");
   const [password_confirmation, setCPassword] = useState<string>("");
   const [is_active, setIsActive] = useState(true);
-  const { mutate } = useMutation({
+  const { mutate, isPending: isAddingNewStudent } = useMutation({
     mutationFn: addNewStudent,
     onSuccess: () => {
       setIsAddStudentOpen(false);
       queryClient.invalidateQueries({ queryKey: ["teachersDash"] });
+      toast({
+        title: "تمت الإضافة",
+        description: "تم إضافة الطالب الجديد بنجاح",
+      });
+      setName("");
+      setUsername("");
+      setPassword("");
+      setCPassword("");
     },
     onError: (e) => {
+      toast({
+        title: "خطأ",
+        description: "فشل في إضافة الطالب الجديد",
+        variant: "destructive",
+      });
       console.error("Error adding student:", e);
     },
   });
-  const { mutate: assign } = useMutation({
+  const { mutate: assign, isPending: isAssigning } = useMutation({
     mutationFn: AssignStudent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teachersDash"] });
+      setIsAddStudentOpen(false);
+      setExistingUsername("");
+      toast({
+        title: "تمت الإضافة",
+        description: "تم إضافة الطالب الموجود بنجاح",
+      });
     },
     onError: (e) => {
-      console.error("Error adding student:", e);
+      toast({
+        title: "خطأ",
+        description: "فشل في إضافة الطالب الموجود تأكد من اسم المستخدم الخاص به",
+        variant: "destructive",
+      });
+      console.error("Error assigning student:", e);
     },
   });
 
@@ -131,7 +156,7 @@ const StudentPage = () => {
 
   if (isPending) {
     return (
-      <div className="py-8 flex justify-center items-center h-full w-full   rounded-md max-w-md mx-auto">
+      <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
         <svg
           className="animate-spin h-10 w-10 text-purple-600"
           xmlns="http://www.w3.org/2000/svg"
@@ -247,81 +272,146 @@ const StudentPage = () => {
       <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>إضافة طالب جديد</DialogTitle>
+            <DialogTitle>إضافة طالب</DialogTitle>
             <DialogDescription>
-              ابحث عن طالب موجود أو قم بإنشاء طالب جديد
+              اختر بين إضافة طالب جديد أو إضافة طالب موجود مسبقاً
             </DialogDescription>
           </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              mutate({
-                name,
-                username,
-                password,
-                password_confirmation,
-                is_active,
-              });
-            }}
-            className="space-y-4 py-2"
-          >
-            <div className="space-y-2">
-              <Label htmlFor="name">الاسم</Label>
-              <Input
-                id="name"
-                placeholder="أدخل اسم الطالب"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                type="text"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">اسم المستخدم</Label>
-              <Input
-                id="username"
-                placeholder="أدخل اسم مستخدم للطالب"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="أدخل كلمة مرور للمعلم"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="Cpassword">تأكيد كلمة المرور</Label>
-              <Input
-                id="Cpassword"
-                type="password"
-                placeholder="أدخل كلمة مرور للطالب مرة ثانية"
-                value={password_confirmation}
-                onChange={(e) => setCPassword(e.target.value)}
-                required
-              />
-            </div>
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => setIsAddStudentOpen(false)}
-              >
-                إلغاء
-              </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "جاري الإضافة..." : "إضافة الطالب"}
-              </Button>
-            </DialogFooter>
-          </form>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Button
+              variant={isExistingStudent ? "outline" : "default"}
+              onClick={() => setIsExistingStudent(false)}
+              className="flex-1"
+            >
+              طالب جديد
+            </Button>
+            <Button
+              variant={isExistingStudent ? "default" : "outline"}
+              onClick={() => setIsExistingStudent(true)}
+              className="flex-1"
+            >
+              طالب موجود
+            </Button>
+          </div>
+
+          {isExistingStudent ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                assign({ username: existingUsername });
+              }}
+              className="space-y-4 py-2"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="existing-username">اسم المستخدم</Label>
+                <Input
+                  id="existing-username"
+                  placeholder="أدخل اسم مستخدم الطالب"
+                  value={existingUsername}
+                  onChange={(e) => setExistingUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsAddStudentOpen(false)}
+                >
+                  إلغاء
+                </Button>
+                <Button type="submit" disabled={isAssigning}>
+                  {isAssigning ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      جاري الإضافة...
+                    </>
+                  ) : (
+                    "إضافة الطالب"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                mutate({
+                  name,
+                  username,
+                  password,
+                  password_confirmation,
+                  is_active,
+                });
+              }}
+              className="space-y-4 py-2"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="name">الاسم</Label>
+                <Input
+                  id="name"
+                  placeholder="أدخل اسم الطالب"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  type="text"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">اسم المستخدم</Label>
+                <Input
+                  id="username"
+                  placeholder="أدخل اسم مستخدم للطالب"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">كلمة المرور</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="أدخل كلمة مرور للمعلم"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="Cpassword">تأكيد كلمة المرور</Label>
+                <Input
+                  id="Cpassword"
+                  type="password"
+                  placeholder="أدخل كلمة مرور للطالب مرة ثانية"
+                  value={password_confirmation}
+                  onChange={(e) => setCPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsAddStudentOpen(false)}
+                >
+                  إلغاء
+                </Button>
+                <Button type="submit" disabled={isAddingNewStudent}>
+                  {isAddingNewStudent ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      جاري الإضافة...
+                    </>
+                  ) : (
+                    "إضافة الطالب"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
 

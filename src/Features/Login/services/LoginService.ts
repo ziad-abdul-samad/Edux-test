@@ -4,10 +4,11 @@ import { LoginRequest, LoginResponse } from "../types/Login";
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await post<LoginResponse, LoginRequest>("/auth/login", data);
-  const { token, type } = response.data.data;
+  const { token, type , username } = response.data.data;
 
   localStorage.setItem("token", token);
   localStorage.setItem("role", type);
+  localStorage.setItem("username", username);
 
   return response.data;
 };

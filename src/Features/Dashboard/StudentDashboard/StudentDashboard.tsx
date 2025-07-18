@@ -87,7 +87,7 @@ const StudentDashboard = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">الاختبارات المتاحة</h2>
-          <Button onClick={() => navigate("/dashboard/quizzes")}>
+          <Button onClick={() => navigate("/dashboard/exams")}>
             عرض جميع الاختبارات
           </Button>
         </div>
@@ -108,7 +108,7 @@ const StudentDashboard = () => {
               </p>
               <Button
                 className="mt-4"
-                onClick={() => navigate("/dashboard/quizzes")}
+                onClick={() => navigate("/dashboard/exams")}
               >
                 استعرض الاختبارات
               </Button>

@@ -7,17 +7,25 @@ import { useQuery } from "@tanstack/react-query";
 import { GetResults } from "./services/GetResults";
 import { StudentExamAnswer } from "./types/Results";
 
+interface ApiResponse {
+  data: StudentExamAnswer[];
+  // Add other response fields if they exist
+}
+
 const ResultsPage = () => {
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error } = useQuery<ApiResponse>({
     queryKey: ["studentsDash"],
     queryFn: GetResults,
   });
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Debug what we're receiving
+  console.log("API Data:", data);
+
   if (isPending) {
     return (
-      <div className="py-8 flex  justify-center items-center h-full w-full  rounded-md max-w-md mx-auto">
+      <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
         <svg
           className="animate-spin h-10 w-10 text-purple-600"
           xmlns="http://www.w3.org/2000/svg"
@@ -42,7 +50,8 @@ const ResultsPage = () => {
     );
   }
 
-  if (error || !data?.data) {
+  if (error) {
+    console.error("Error loading results:", error);
     return (
       <div className="text-red-500 text-center mt-10">
         حدث خطأ أثناء تحميل النتائج.
@@ -50,7 +59,17 @@ const ResultsPage = () => {
     );
   }
 
-  const results = data.data;
+  if (!data?.data) {
+    return (
+      <div className="text-gray-500 text-center mt-10">
+        لا توجد نتائج متاحة.
+      </div>
+    );
+  }
+
+  // Safely get results or default to empty array
+  const results = Array.isArray(data.data) ? data.data : [];
+  console.log("Processed results:", results);
 
   // Group results by exam ID
   const groupedResults: Record<string, StudentExamAnswer[]> = {};
@@ -119,7 +138,10 @@ const ResultsPage = () => {
                     className="p-4"
                   >
                     <div className="mb-2">
-                      <h3 className="font-semibold text-lg">اسم الاختبار: {""}{exam.title}</h3>
+                      <h3 className="font-semibold text-lg">
+                        اسم الاختبار: {exam.title}
+                      </h3>
+                      {/* Uncomment if you want to show student info */}
                       {/* <p className="text-sm text-purple-600">
                         الطالب: {student.name} ({student.username})
                       </p> */}
