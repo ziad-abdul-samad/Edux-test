@@ -8,6 +8,7 @@ export interface PastResult {
   total_questions: string;
   created_at: string;
   updated_at: string;
+  exam: Exam;
 }
 
 export interface Exam {

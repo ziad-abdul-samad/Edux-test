@@ -146,7 +146,7 @@ const StudentDashboard = () => {
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="font-medium">
-                        اختبار رقم {result.exam_id}
+                         اسم الاختبار  :{result.exam.title}
                       </h3>
                       <p className="text-sm text-gray-500">
                         {new Date(result.created_at).toLocaleDateString(
