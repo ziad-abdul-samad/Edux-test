@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,29 +14,29 @@ import { Question, TakeExamResponse } from "./types/TakeExam";
 import { SubmitAnswerPayload } from "./types/SubmitExam";
 
 const TakeExam = () => {
-  const { id } = useParams();
-  const examId = Number(id);
   const navigate = useNavigate();
   const { toast } = useToast();
-  console.log(id);
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<number, number>
+  >({});
   const [quizStarted, setQuizStarted] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [score, setScore] = useState(0);
+  const { examId } = useParams();
 
   // Fetch exam data
-  const { 
-    data: examData, 
-    isLoading, 
-    error 
+  const {
+    data: examData,
+    isLoading,
+    error,
   } = useQuery({
-    queryKey: ["take-exam", examId],
-    queryFn: () => GetTakeExam(examId),
-    enabled: !!examId && !quizStarted,
+    queryKey: ["takeExam", examId],
+    queryFn: () => GetTakeExam(Number(examId!)),
   });
-
+  console.log(examId);
   // Handle API errors
   useEffect(() => {
     if (error) {
@@ -50,7 +50,12 @@ const TakeExam = () => {
 
   // Submit exam mutation
   const mutation = useMutation({
-    mutationFn: (payload: SubmitAnswerPayload) => submitExam(examId, payload),
+    mutationFn: (payload: SubmitAnswerPayload) => {
+      if (!examData?.data?.id) {
+        throw new Error("Exam ID is not available");
+      }
+      return submitExam(examData.data.id, payload);
+    },
     onSuccess: (res) => {
       setScore(res.data.score);
       setShowResult(true);
@@ -58,7 +63,7 @@ const TakeExam = () => {
     onError: () => {
       toast({
         title: "خطأ",
-        description: "حدث خطأ أثناء إرسال الإجابات.",
+        description: "حدث خطأ أثناء إرسال الإجابات",
         variant: "destructive",
       });
     },
@@ -66,7 +71,10 @@ const TakeExam = () => {
 
   const questions = examData?.data?.questions || [];
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
+  const progress =
+    questions.length > 0
+      ? ((currentQuestionIndex + 1) / questions.length) * 100
+      : 0;
 
   // Timer setup
   useEffect(() => {
@@ -97,13 +105,17 @@ const TakeExam = () => {
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleStartExam = () => {
     if (examData) {
       setQuizStarted(true);
     } else {
+      console.error("Exam data:", examData); // Log exam data
+      console.error("Error object:", error); // Log detailed error
       toast({
         title: "خطأ",
         description: "لم يتم العثور على الاختبار",
@@ -134,42 +146,54 @@ const TakeExam = () => {
   };
 
   const handleSubmit = () => {
-    const payload: SubmitAnswerPayload = {
-      questions: questions.map((q) => ({
-        id: q.id,
-        answers: selectedAnswers[q.id] ? [{ id: selectedAnswers[q.id] }] : [],
-      })),
-    };
-    mutation.mutate(payload);
+  const payload: SubmitAnswerPayload = {
+    questions: questions.map((q) => ({
+      id: q.id,
+      answers: selectedAnswers[q.id] ? [{ id: selectedAnswers[q.id] }] : [],
+    })),
   };
+  mutation.mutate(payload);
+};
+
+
 
   const renderIntro = () => (
     <Card className="max-w-3xl mx-auto">
       <CardContent className="p-6 text-center space-y-6">
         <h1 className="text-3xl font-bold">{examData?.data?.title}</h1>
-        {examData?.data?.description && <p className="text-gray-600">{examData.data.description}</p>}
+        {examData?.data?.description && (
+          <p className="text-gray-600">{examData.data.description}</p>
+        )}
 
         <div className="bg-blue-50 p-4 rounded-lg text-blue-800">
           <div className="grid grid-cols-2 gap-4 max-w-md mx-auto text-sm">
             <div>عدد الأسئلة:</div>
-            <div className="font-medium">{examData?.data?.questions.length || 0}</div>
+            <div className="font-medium">
+              {examData?.data?.questions.length || 0}
+            </div>
             {examData?.data?.duration_minutes && (
               <>
-                <div>المدة:</div>
-                <div className="font-medium">{examData.data.duration_minutes} دقيقة</div>
+                <div>المدة الزمنية:</div>
+                <div className="font-medium">
+                  {examData.data.duration_minutes} دقيقة
+                </div>
               </>
             )}
-            <div>المحاولات:</div>
-            <div className="font-medium">{examData?.data?.attempt_limit || 0}</div>
+            <div>عدد المحاولات:</div>
+            <div className="font-medium">
+              {examData?.data?.attempt_limit || 0}
+            </div>
           </div>
         </div>
 
         {examData?.data?.duration_minutes && (
           <div className="bg-yellow-50 text-yellow-800 p-3 rounded-md text-sm">
-            سيتم تسليم الاختبار تلقائياً عند انتهاء الوقت.
+            ملاحظة: سوف يتم إرسال الاختبار تلقائياً عند انتهاء الوقت
           </div>
         )}
-
+        <div className="bg-red-50 text-red-800 p-3 rounded-md text-sm">
+          الأسئلة التي لم يتم الإجابة عليها سيتم احتسابها كإجابات خاطئة
+        </div>
         <Button className="w-full max-w-xs mx-auto" onClick={handleStartExam}>
           بدء الاختبار
         </Button>
@@ -231,30 +255,34 @@ const TakeExam = () => {
           <AlertCircle className="h-12 w-12 text-yellow-500" />
         )}
       </div>
-      <h2 className="text-2xl font-bold mt-4">تم تسليم الاختبار!</h2>
+      <h2 className="text-2xl font-bold mt-4">تم إرسال الاختبار!</h2>
       <div className="text-4xl font-bold text-blue-700">
         {score}/{questions.length}
       </div>
       <Button className="mt-6" onClick={() => navigate("/dashboard/exams")}>
-        العودة إلى صفحة الاختبارات
+        العودة إلى الاختبارات
       </Button>
     </motion.div>
   );
 
-  if (isLoading) return <div className="text-center py-20">جاري التحميل...</div>;
-  
-  if (error) return (
-    <div className="text-center py-20">
-      <AlertCircle className="h-16 w-16 text-red-500 mx-auto" />
-      <h2 className="text-xl font-bold mt-4">فشل تحميل الاختبار</h2>
-      <p className="text-gray-600 mt-2">تعذر تحميل بيانات الاختبار، يرجى المحاولة لاحقاً</p>
-      <Button className="mt-6" onClick={() => navigate("/dashboard/exams")}>
-        العودة
-      </Button>
-    </div>
-  );
-  
-  if (!quizStarted && !examData?.data) return <div className="text-center py-20">لم يتم العثور على الاختبار</div>;
+  if (isLoading) return <div className="text-center py-20">جار التحميل...</div>;
+
+  if (error)
+    return (
+      <div className="text-center py-20">
+        <AlertCircle className="h-16 w-16 text-red-500 mx-auto" />
+        <h2 className="text-xl font-bold mt-4">فشل تحميل الاختبار</h2>
+        <p className="text-gray-600 mt-2">
+          تعذر تحميل بيانات الاختبار، يرجى المحاولة مرة أخرى لاحقاً
+        </p>
+        <Button className="mt-6" onClick={() => navigate("/dashboard/exams")}>
+          العودة
+        </Button>
+      </div>
+    );
+
+  if (!quizStarted && !examData?.data)
+    return <div className="text-center py-20">لم يتم العثور على الاختبار</div>;
   if (!quizStarted) return renderIntro();
 
   return (
@@ -311,7 +339,7 @@ const TakeExam = () => {
                     disabled={!selectedAnswers[currentQuestion.id]}
                   >
                     {currentQuestionIndex === questions.length - 1
-                      ? "إنهاء الاختبار"
+                      ? "إرسال الاختبار"
                       : "التالي"}
                   </Button>
                 </div>
