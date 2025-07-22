@@ -13,6 +13,7 @@ export interface TeacherResult {
   exam_stats: ExamStat[];
   best_result: ExamStat;
   average_percentage: number;
+  joined_at:string;
 }
 
 export interface ExamStat {

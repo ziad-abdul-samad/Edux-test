@@ -4,7 +4,7 @@ import { LibraryCategoryResponse } from "../types/LibraryCategoryResponse";
 export const getLibraryCategories =
   async (): Promise<LibraryCategoryResponse> => {
     const response = await post<LibraryCategoryResponse>(
-      "/filescategory/index"
+      "/filescategory/indexTeacher"
     );
     return response.data;
   };

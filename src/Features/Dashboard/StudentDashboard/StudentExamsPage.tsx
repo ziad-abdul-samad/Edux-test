@@ -56,7 +56,7 @@ const StudentExamsPage = () => {
     );
   }
 
-  const exams = data?.data.exams.data || [];
+  const exams = data?.data.exams || [];
 
   const filteredExams = exams.filter((exam) =>
     exam.title.toLowerCase().includes(searchQuery.toLowerCase())

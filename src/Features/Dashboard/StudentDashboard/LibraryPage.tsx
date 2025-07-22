@@ -76,7 +76,7 @@ const LibraryPage = () => {
       new Map(
         files.map((f) => [
           f.teacher_id,
-          { id: f.teacher_id, name: `معلم ${f.teacher_id}` },
+          { id: f.teacher_id, name: ` ${f.teacher.name}:المعلم` },
         ])
       ).values()
     ),
@@ -233,7 +233,7 @@ const LibraryPage = () => {
                                 )}
                               </span>
                               <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
-                                معرف المعلم: {file.teacher_id}
+                                {file.teacher.name}:اسم المعلم
                               </span>
                             </div>
                           </div>
@@ -294,7 +294,7 @@ const LibraryPage = () => {
                               )}
                             </span>
                             <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                              معرف المعلم: {file.teacher_id}
+                              {file.teacher.name}:اسم المعلم
                             </span>
                           </div>
                         </div>

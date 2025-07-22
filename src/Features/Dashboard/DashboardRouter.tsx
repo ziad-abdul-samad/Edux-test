@@ -17,8 +17,6 @@ import { Separator } from "@/components/ui/separator";
 import TeachersPage from "./AdminDashboard/TeachersPage";
 import StudentsPage from "./TeacherDashboard/StudentsPage";
 import ExamsPage from "./TeacherDashboard/ExamsPage";
-import { useQuery } from "@tanstack/react-query";
-import { LoginInfo } from "../Login/services/LoginInfo";
 import CreateExamPage from "./TeacherDashboard/CreateExamPage";
 import EditExamPage from "./TeacherDashboard/EditExamPage";
 import StudentExamsPage from "./StudentDashboard/StudentExamsPage";

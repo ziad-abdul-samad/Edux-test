@@ -28,9 +28,7 @@ export interface Exam {
 
 export interface ActiveExamsResponse {
   data: {
-    exams: {
-      data: Exam[];
-    };
+    exams: Exam[];
   };
   message: string;
   status: number;

@@ -94,6 +94,7 @@ const SubscriptionsPage = () => {
                     <Users className="h-5 w-5 text-primary" />
                     {teacher.teacher_name}
                   </CardTitle>
+                    <p className="text-[12px]">تاريخ الانضمام: {""}{teacher.joined_at.slice(0,10)}</p>
                 </CardHeader>
 
                 <CardContent>
