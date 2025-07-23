@@ -16,18 +16,15 @@ import { SubmitAnswerPayload } from "./types/SubmitExam";
 const TakeExam = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { examId } = useParams();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<
-    Record<number, number>
-  >({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [quizStarted, setQuizStarted] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [score, setScore] = useState(0);
-  const { examId } = useParams();
 
-  // Fetch exam data
   const {
     data: examData,
     isLoading,
@@ -36,8 +33,7 @@ const TakeExam = () => {
     queryKey: ["takeExam", examId],
     queryFn: () => GetTakeExam(Number(examId!)),
   });
-  console.log(examId);
-  // Handle API errors
+
   useEffect(() => {
     if (error) {
       toast({
@@ -48,7 +44,6 @@ const TakeExam = () => {
     }
   }, [error, toast]);
 
-  // Submit exam mutation
   const mutation = useMutation({
     mutationFn: (payload: SubmitAnswerPayload) => {
       if (!examData?.data?.id) {
@@ -71,19 +66,16 @@ const TakeExam = () => {
 
   const questions = examData?.data?.questions || [];
   const currentQuestion = questions[currentQuestionIndex];
-  const progress =
-    questions.length > 0
-      ? ((currentQuestionIndex + 1) / questions.length) * 100
-      : 0;
+  const progress = questions.length
+    ? ((currentQuestionIndex + 1) / questions.length) * 100
+    : 0;
 
-  // Timer setup
   useEffect(() => {
     if (quizStarted && examData?.data?.duration_minutes) {
       setTimeRemaining(examData.data.duration_minutes * 60);
     }
   }, [quizStarted, examData?.data?.duration_minutes]);
 
-  // Timer countdown
   useEffect(() => {
     if (!quizStarted || timeRemaining === null) return;
 
@@ -105,17 +97,13 @@ const TakeExam = () => {
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
+    return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleStartExam = () => {
     if (examData) {
       setQuizStarted(true);
     } else {
-      console.error("Exam data:", examData); // Log exam data
-      console.error("Error object:", error); // Log detailed error
       toast({
         title: "خطأ",
         description: "لم يتم العثور على الاختبار",
@@ -146,16 +134,14 @@ const TakeExam = () => {
   };
 
   const handleSubmit = () => {
-  const payload: SubmitAnswerPayload = {
-    questions: questions.map((q) => ({
-      id: q.id,
-      answers: selectedAnswers[q.id] ? [{ id: selectedAnswers[q.id] }] : [],
-    })),
+    const payload: SubmitAnswerPayload = {
+      questions: questions.map((q) => ({
+        id: q.id,
+        answers: selectedAnswers[q.id] ? [{ id: selectedAnswers[q.id] }] : [],
+      })),
+    };
+    mutation.mutate(payload);
   };
-  mutation.mutate(payload);
-};
-
-
 
   const renderIntro = () => (
     <Card className="max-w-3xl mx-auto">
@@ -168,9 +154,7 @@ const TakeExam = () => {
         <div className="bg-blue-50 p-4 rounded-lg text-blue-800">
           <div className="grid grid-cols-2 gap-4 max-w-md mx-auto text-sm">
             <div>عدد الأسئلة:</div>
-            <div className="font-medium">
-              {examData?.data?.questions.length || 0}
-            </div>
+            <div className="font-medium">{questions.length}</div>
             {examData?.data?.duration_minutes && (
               <>
                 <div>المدة الزمنية:</div>
@@ -180,9 +164,7 @@ const TakeExam = () => {
               </>
             )}
             <div>عدد المحاولات:</div>
-            <div className="font-medium">
-              {examData?.data?.attempt_limit || 0}
-            </div>
+            <div className="font-medium">{examData?.data?.attempt_limit}</div>
           </div>
         </div>
 
@@ -201,12 +183,63 @@ const TakeExam = () => {
     </Card>
   );
 
+  const renderQuestionNavigator = () => (
+  <>
+    <div className="flex flex-wrap gap-2 justify-center mb-4">
+      {questions.map((q, index) => {
+        const isCurrent = index === currentQuestionIndex;
+        const isAnswered = !!selectedAnswers[q.id];
+        const isVisited = index < currentQuestionIndex && !isAnswered;
+
+        const baseClasses = "w-8 h-8 text-sm rounded-full border transition-all duration-200";
+
+        let statusClass = "bg-white hover:bg-gray-100 text-gray-600";
+        if (isAnswered) {
+          statusClass = "bg-green-100 text-green-800 border-green-400";
+        } else if (isVisited) {
+          statusClass = "bg-yellow-100 text-yellow-800 border-yellow-400";
+        }
+
+        const currentClass = isCurrent ? "border-blue-500 font-bold" : "border-gray-300";
+
+        return (
+          <button
+            key={q.id}
+            onClick={() => setCurrentQuestionIndex(index)}
+            className={`${baseClasses} ${statusClass} ${currentClass}`}
+          >
+            {index + 1}
+          </button>
+        );
+      })}
+    </div>
+
+    {/* Legend (Arabic) */}
+    <div className="flex justify-center gap-4 text-sm text-gray-700 mb-6">
+      <div className="flex items-center gap-1">
+        <div className="w-4 h-4 rounded-full bg-green-100 border border-green-400" />
+        <span>تمت الإجابة</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <div className="w-4 h-4 rounded-full bg-yellow-100 border border-yellow-400" />
+        <span>تم تخطيه</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <div className="w-4 h-4 rounded-full bg-white border border-gray-300" />
+        <p>لم يتم زيارته</p>
+      </div>
+    </div>
+  </>
+);
+
+  const IMAGE_BASE_URL = "https://edux.site/";
+
   const renderQuestion = (question: Question) => (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">{question.text}</h2>
       {question.image && (
         <img
-          src={question.image}
+          src={`${IMAGE_BASE_URL}${question.image}`}
           alt="صورة السؤال"
           className="max-h-64 mx-auto rounded-md"
         />
@@ -243,11 +276,7 @@ const TakeExam = () => {
   );
 
   const renderResult = () => (
-    <motion.div
-      className="text-center py-10"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
+    <motion.div className="text-center py-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center mx-auto">
         {score >= questions.length / 2 ? (
           <CheckCircle className="h-12 w-12 text-green-500" />
@@ -256,9 +285,7 @@ const TakeExam = () => {
         )}
       </div>
       <h2 className="text-2xl font-bold mt-4">تم إرسال الاختبار!</h2>
-      <div className="text-4xl font-bold text-blue-700">
-        {score}/{questions.length}
-      </div>
+      <div className="text-4xl font-bold text-blue-700">{score}/{questions.length}</div>
       <Button className="mt-6" onClick={() => navigate("/dashboard/exams")}>
         العودة إلى الاختبارات
       </Button>
@@ -266,23 +293,7 @@ const TakeExam = () => {
   );
 
   if (isLoading) return <div className="text-center py-20">جار التحميل...</div>;
-
-  if (error)
-    return (
-      <div className="text-center py-20">
-        <AlertCircle className="h-16 w-16 text-red-500 mx-auto" />
-        <h2 className="text-xl font-bold mt-4">فشل تحميل الاختبار</h2>
-        <p className="text-gray-600 mt-2">
-          تعذر تحميل بيانات الاختبار، يرجى المحاولة مرة أخرى لاحقاً
-        </p>
-        <Button className="mt-6" onClick={() => navigate("/dashboard/exams")}>
-          العودة
-        </Button>
-      </div>
-    );
-
-  if (!quizStarted && !examData?.data)
-    return <div className="text-center py-20">لم يتم العثور على الاختبار</div>;
+  if (error) return renderIntro();
   if (!quizStarted) return renderIntro();
 
   return (
@@ -291,19 +302,15 @@ const TakeExam = () => {
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold">{examData?.data?.title}</h1>
           <div className="flex justify-center items-center gap-4 mt-2 text-sm text-gray-600">
-            <span>
-              السؤال {currentQuestionIndex + 1} من {questions.length}
-            </span>
+            <span>السؤال {currentQuestionIndex + 1} من {questions.length}</span>
             {timeRemaining !== null && (
-              <div
-                className={`flex items-center gap-1 font-mono text-lg ${
-                  timeRemaining < 60
-                    ? "text-red-600"
-                    : timeRemaining < 180
-                    ? "text-amber-600"
-                    : "text-green-600"
-                }`}
-              >
+              <div className={`flex items-center gap-1 font-mono text-lg ${
+                timeRemaining < 60
+                  ? "text-red-600"
+                  : timeRemaining < 180
+                  ? "text-amber-600"
+                  : "text-green-600"
+              }`}>
                 <Clock className="h-4 w-4" />
                 {formatTime(timeRemaining)}
               </div>
@@ -312,6 +319,8 @@ const TakeExam = () => {
           <Progress className="mt-4 h-2" value={progress} />
         </div>
       )}
+
+      {!showResult && renderQuestionNavigator()}
 
       <Card>
         <CardContent className="p-6">
@@ -327,17 +336,10 @@ const TakeExam = () => {
                 {currentQuestion && renderQuestion(currentQuestion)}
 
                 <div className="flex justify-between mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={handlePrevious}
-                    disabled={currentQuestionIndex === 0}
-                  >
+                  <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
                     السابق
                   </Button>
-                  <Button
-                    onClick={handleNext}
-                    disabled={!selectedAnswers[currentQuestion.id]}
-                  >
+                  <Button onClick={handleNext}>
                     {currentQuestionIndex === questions.length - 1
                       ? "إرسال الاختبار"
                       : "التالي"}

@@ -17,6 +17,7 @@ import {
   EyeIcon,
   EyeOffIcon,
   CalendarClock,
+  Loader2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -631,14 +632,26 @@ const CreateQuiz = () => {
 
       {/* Submit */}
       <div className="flex justify-end">
-        <Button
-          size="lg"
-          onClick={handleSubmit}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          إنشاء الاختبار
-          <ArrowRight className="mr-2 rtl-flip" size={16} />
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            size="lg"
+            onClick={handleSubmit}
+            className="bg-purple-600 hover:bg-purple-700"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                جارٍ الإنشاء...
+              </>
+            ) : (
+              <>
+                إنشاء الاختبار
+                <ArrowRight className="mr-2 rtl-flip" size={16} />
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
