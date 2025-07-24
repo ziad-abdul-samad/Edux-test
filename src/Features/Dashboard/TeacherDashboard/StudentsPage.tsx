@@ -10,6 +10,7 @@ import {
   Plus,
   User,
   Edit,
+  KeyRound,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
@@ -43,6 +44,7 @@ import {
 import { addNewStudent } from "./services/AddNewStudent";
 import { AssignStudent } from "./services/AssignSTT";
 import { UpdateStudent } from "./services/UpdateStudent";
+import { changeStudentPassword } from "./services/UpdateStudPassword";
 
 const StudentPage = () => {
   const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
@@ -52,6 +54,46 @@ const StudentPage = () => {
   const [editDialogOpenId, setEditDialogOpenId] = useState<number | null>(null);
   const [isExistingStudent, setIsExistingStudent] = useState(false);
   const [existingUsername, setExistingUsername] = useState("");
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [changingPasswordId, setChangingPasswordId] = useState<number | null>(
+    null
+  );
+  const [openPasswordEditorId, setOpenPasswordEditorId] = useState<
+    number | null
+  >(null);
+  const [passwordSearchQuery, setPasswordSearchQuery] = useState("");
+  const [newPasswords, setNewPasswords] = useState<{ [id: number]: string }>(
+    {}
+  );
+  const { mutate: changePassword, isPending: isChangingPassword } = useMutation(
+    {
+      mutationFn: ({
+        id,
+        new_password,
+      }: {
+        id: number;
+        new_password: string;
+      }) => changeStudentPassword(id, { new_password }),
+      onSuccess: () => {
+        setPasswordDialogOpen(false);
+        toast({
+          title: "تم تغيير كلمة المرور",
+          description: "تم تغيير كلمة مرور الطالب بنجاح",
+        });
+        queryClient.invalidateQueries({ queryKey: ["teachersDash"] });
+        setChangingPasswordId(null);
+        setNewPasswords({});
+      },
+      onError: () => {
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ أثناء تغيير كلمة المرور",
+          variant: "destructive",
+        });
+      },
+    }
+  );
+
   const queryClient = useQueryClient();
 
   // Fetch students
@@ -86,7 +128,7 @@ const StudentPage = () => {
       setStudentToDelete(null);
       toast({
         title: "تم حذف الطالب",
-        description: "تم حذف الطالب وجميع بياناته من النظام بنجاح",
+        description: "تم حذف الطالب من قائمة طلابك بنجاح",
       });
     },
     onError: () => {
@@ -141,7 +183,8 @@ const StudentPage = () => {
     onError: (e) => {
       toast({
         title: "خطأ",
-        description: "فشل في إضافة الطالب الموجود تأكد من اسم المستخدم الخاص به",
+        description:
+          "فشل في إضافة الطالب الموجود تأكد من اسم المستخدم الخاص به",
         variant: "destructive",
       });
       console.error("Error assigning student:", e);
@@ -187,15 +230,26 @@ const StudentPage = () => {
       teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       teacher.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
+  const filteredPasswordStudents = students.filter(
+    (student) =>
+      student.name.toLowerCase().includes(passwordSearchQuery.toLowerCase()) ||
+      student.username.toLowerCase().includes(passwordSearchQuery.toLowerCase())
+  );
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">إدارة الطلاب</h1>
+        <div className="flex items-center gap-2">
+
         <Button onClick={() => setIsAddStudentOpen(true)}>
           <Plus className="ml-2 rtl-flip" size={16} />
           إضافة طالب جديد
         </Button>
+        <Button variant="outline" onClick={() => setPasswordDialogOpen(true)}>
+          <Key className="ml-2 rtl-flip" size={16} />
+          إدارة كلمات المرور
+        </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 max-w-sm">
@@ -499,6 +553,119 @@ const StudentPage = () => {
               ) : null}
               حفظ التغييرات
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>إدارة كلمات مرور الطلاب</DialogTitle>
+          </DialogHeader>
+
+          <div className="mb-4 flex items-center gap-2">
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث عن طالب..."
+              value={passwordSearchQuery}
+              onChange={(e) => setPasswordSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {filteredPasswordStudents.length === 0 ? (
+              <p className="text-center text-muted-foreground">
+                لا يوجد طلاب مطابقين
+              </p>
+            ) : (
+              filteredPasswordStudents.map((student) => (
+                <div
+                  key={student.id}
+                  className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                >
+                  <div>
+                    <p className="font-medium text-lg">{student.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      اسم المستخدم: {student.username}
+                    </p>
+                  </div>
+
+                  <div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setOpenPasswordEditorId(student.id)}
+                    >
+                      <KeyRound className="w-4 h-4 mr-2" />
+                      تغيير كلمة المرور
+                    </Button>
+
+                    {/* ⬇️ Password Update Nested Dialog */}
+                    <Dialog
+                      open={openPasswordEditorId === student.id}
+                      onOpenChange={(open) => {
+                        if (!open) {
+                          setOpenPasswordEditorId(null);
+                          setChangingPasswordId(null);
+                        }
+                      }}
+                    >
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>تغيير كلمة المرور</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                          <Label htmlFor={`password-${student.id}`}>
+                            كلمة المرور الجديدة لـ {student.name}
+                          </Label>
+                          <Input
+                            id={`password-${student.id}`}
+                            type="password"
+                            placeholder="أدخل كلمة المرور الجديدة"
+                            value={newPasswords[student.id] || ""}
+                            onChange={(e) =>
+                              setNewPasswords((prev) => ({
+                                ...prev,
+                                [student.id]: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+
+                        <DialogFooter className="pt-4">
+                          <Button
+                            onClick={() => {
+                              if (!newPasswords[student.id]) return;
+                              setChangingPasswordId(student.id);
+                              changePassword({
+                                id: student.id,
+                                new_password: newPasswords[student.id],
+                              });
+                            }}
+                            disabled={
+                              isChangingPassword &&
+                              changingPasswordId === student.id
+                            }
+                          >
+                            {isChangingPassword &&
+                            changingPasswordId === student.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <Key className="w-4 h-4 mr-2" />
+                            )}
+                            تأكيد التغيير
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    {/* ⬆️ End Nested Dialog */}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter className="pt-4">
+            <Button onClick={() => setPasswordDialogOpen(false)}>إغلاق</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

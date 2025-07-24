@@ -19,7 +19,9 @@ const TakeExam = () => {
   const { examId } = useParams();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<number, number>
+  >({});
   const [quizStarted, setQuizStarted] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
@@ -97,7 +99,9 @@ const TakeExam = () => {
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleStartExam = () => {
@@ -184,53 +188,56 @@ const TakeExam = () => {
   );
 
   const renderQuestionNavigator = () => (
-  <>
-    <div className="flex flex-wrap gap-2 justify-center mb-4">
-      {questions.map((q, index) => {
-        const isCurrent = index === currentQuestionIndex;
-        const isAnswered = !!selectedAnswers[q.id];
-        const isVisited = index < currentQuestionIndex && !isAnswered;
+    <>
+      <div className="flex flex-wrap gap-2 justify-center mb-4">
+        {questions.map((q, index) => {
+          const isCurrent = index === currentQuestionIndex;
+          const isAnswered = !!selectedAnswers[q.id];
+          const isVisited = index < currentQuestionIndex && !isAnswered;
 
-        const baseClasses = "w-8 h-8 text-sm rounded-full border transition-all duration-200";
+          const baseClasses =
+            "w-8 h-8 text-sm rounded-full border transition-all duration-200";
 
-        let statusClass = "bg-white hover:bg-gray-100 text-gray-600";
-        if (isAnswered) {
-          statusClass = "bg-green-100 text-green-800 border-green-400";
-        } else if (isVisited) {
-          statusClass = "bg-yellow-100 text-yellow-800 border-yellow-400";
-        }
+          let statusClass = "bg-white hover:bg-gray-100 text-gray-600";
+          if (isAnswered) {
+            statusClass = "bg-green-100 text-green-800 border-green-400";
+          } else if (isVisited) {
+            statusClass = "bg-yellow-100 text-yellow-800 border-yellow-400";
+          }
 
-        const currentClass = isCurrent ? "border-blue-500 font-bold" : "border-gray-300";
+          const currentClass = isCurrent
+            ? "border-blue-500 font-bold"
+            : "border-gray-300";
 
-        return (
-          <button
-            key={q.id}
-            onClick={() => setCurrentQuestionIndex(index)}
-            className={`${baseClasses} ${statusClass} ${currentClass}`}
-          >
-            {index + 1}
-          </button>
-        );
-      })}
-    </div>
-
-    {/* Legend (Arabic) */}
-    <div className="flex justify-center gap-4 text-sm text-gray-700 mb-6">
-      <div className="flex items-center gap-1">
-        <div className="w-4 h-4 rounded-full bg-green-100 border border-green-400" />
-        <span>تمت الإجابة</span>
+          return (
+            <button
+              key={q.id}
+              onClick={() => setCurrentQuestionIndex(index)}
+              className={`${baseClasses} ${statusClass} ${currentClass}`}
+            >
+              {index + 1}
+            </button>
+          );
+        })}
       </div>
-      <div className="flex items-center gap-1">
-        <div className="w-4 h-4 rounded-full bg-yellow-100 border border-yellow-400" />
-        <span>تم تخطيه</span>
+
+      {/* Legend (Arabic) */}
+      <div className="flex justify-center gap-4 text-sm text-gray-700 mb-6">
+        <div className="flex items-center gap-1">
+          <div className="w-4 h-4 rounded-full bg-green-100 border border-green-400" />
+          <span>تمت الإجابة</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-4 h-4 rounded-full bg-yellow-100 border border-yellow-400" />
+          <span>تم تخطيه</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-4 h-4 rounded-full bg-white border border-gray-300" />
+          <p>لم يتم زيارته</p>
+        </div>
       </div>
-      <div className="flex items-center gap-1">
-        <div className="w-4 h-4 rounded-full bg-white border border-gray-300" />
-        <p>لم يتم زيارته</p>
-      </div>
-    </div>
-  </>
-);
+    </>
+  );
 
   const IMAGE_BASE_URL = "https://edux.site/";
 
@@ -276,7 +283,11 @@ const TakeExam = () => {
   );
 
   const renderResult = () => (
-    <motion.div className="text-center py-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div
+      className="text-center py-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
       <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center mx-auto">
         {score >= questions.length / 2 ? (
           <CheckCircle className="h-12 w-12 text-green-500" />
@@ -285,14 +296,40 @@ const TakeExam = () => {
         )}
       </div>
       <h2 className="text-2xl font-bold mt-4">تم إرسال الاختبار!</h2>
-      <div className="text-4xl font-bold text-blue-700">{score}/{questions.length}</div>
+      <div className="text-4xl font-bold text-blue-700">
+        {score}/{questions.length}
+      </div>
       <Button className="mt-6" onClick={() => navigate("/dashboard/exams")}>
         العودة إلى الاختبارات
       </Button>
     </motion.div>
   );
 
-  if (isLoading) return <div className="text-center py-20">جار التحميل...</div>;
+  if (isLoading)
+    return (
+      <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
+        <svg
+          className="animate-spin h-10 w-10 text-purple-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+      </div>
+    );
   if (error) return renderIntro();
   if (!quizStarted) return renderIntro();
 
@@ -302,15 +339,19 @@ const TakeExam = () => {
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold">{examData?.data?.title}</h1>
           <div className="flex justify-center items-center gap-4 mt-2 text-sm text-gray-600">
-            <span>السؤال {currentQuestionIndex + 1} من {questions.length}</span>
+            <span>
+              السؤال {currentQuestionIndex + 1} من {questions.length}
+            </span>
             {timeRemaining !== null && (
-              <div className={`flex items-center gap-1 font-mono text-lg ${
-                timeRemaining < 60
-                  ? "text-red-600"
-                  : timeRemaining < 180
-                  ? "text-amber-600"
-                  : "text-green-600"
-              }`}>
+              <div
+                className={`flex items-center gap-1 font-mono text-lg ${
+                  timeRemaining < 60
+                    ? "text-red-600"
+                    : timeRemaining < 180
+                    ? "text-amber-600"
+                    : "text-green-600"
+                }`}
+              >
                 <Clock className="h-4 w-4" />
                 {formatTime(timeRemaining)}
               </div>
@@ -336,7 +377,11 @@ const TakeExam = () => {
                 {currentQuestion && renderQuestion(currentQuestion)}
 
                 <div className="flex justify-between mt-8">
-                  <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
+                  <Button
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={currentQuestionIndex === 0}
+                  >
                     السابق
                   </Button>
                   <Button onClick={handleNext}>

@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
@@ -8,6 +7,7 @@ import {
   Users,
   Loader2,
   Edit,
+  KeyRound,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTeachers } from "./services/TeacherService";
@@ -39,6 +39,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { changeActiveTeacherFunc } from "./services/ChangeActiveTeacher";
 import { UpdateTeacher } from "./services/UpdateTeacher";
+import { changeTeacherPassword } from "./services/UpdateTeacherPassword";
 
 const TeachersPage = () => {
   const [teacherToDelete, setTeacherToDelete] = useState<number | null>(null);
@@ -47,6 +48,46 @@ const TeachersPage = () => {
   const [editUsername, setEditUsername] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loadingIds, setLoadingIds] = useState<number[]>([]);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [changingPasswordId, setChangingPasswordId] = useState<number | null>(
+    null
+  );
+  const [openPasswordEditorId, setOpenPasswordEditorId] = useState<
+    number | null
+  >(null);
+  const [passwordSearchQuery, setPasswordSearchQuery] = useState("");
+  const [newPasswords, setNewPasswords] = useState<{ [id: number]: string }>(
+    {}
+  );
+  const { mutate: changePassword, isPending: isChangingPassword } = useMutation(
+    {
+      mutationFn: ({
+        id,
+        new_password,
+      }: {
+        id: number;
+        new_password: string;
+      }) => changeTeacherPassword(id, { new_password }),
+      onSuccess: () => {
+        setPasswordDialogOpen(false)
+        toast({
+          title: "تم تغيير كلمة المرور",
+          description: "تم تغيير كلمة مرور المعلم بنجاح",
+        });
+        queryClient.invalidateQueries({ queryKey: ["teachers"] });
+        setChangingPasswordId(null);
+        setNewPasswords({});
+      },
+      onError: () => {
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ أثناء تغيير كلمة المرور",
+          variant: "destructive",
+        });
+      },
+    }
+  );
+
   const queryClient = useQueryClient();
 
   const { data, isPending, error } = useQuery({
@@ -158,17 +199,19 @@ const TeachersPage = () => {
       teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       teacher.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
+  const filteredPasswordTeachers = teachers.filter(
+    (teacher) =>
+      teacher.name.toLowerCase().includes(passwordSearchQuery.toLowerCase()) ||
+      teacher.username.toLowerCase().includes(passwordSearchQuery.toLowerCase())
+  );
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="md:text-3xl text-lg font-bold">إدارة المعلمين</h1>
-        <Link to="/dashboard/manage-passwords">
-          <Button variant="outline">
-            <Key className="ml-2 rtl-flip" size={16} />
-            إدارة كلمات المرور
-          </Button>
-        </Link>
+        <Button variant="outline" onClick={() => setPasswordDialogOpen(true)}>
+          <Key className="ml-2 rtl-flip" size={16} />
+          إدارة كلمات المرور
+        </Button>
       </div>
 
       <div className="flex items-center gap-2 max-w-sm">
@@ -354,6 +397,124 @@ const TeachersPage = () => {
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
               حفظ التغييرات
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>إدارة كلمات مرور المعلمين</DialogTitle>
+          </DialogHeader>
+
+          <div className="mb-4 flex items-center gap-2">
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث عن معلم..."
+              value={passwordSearchQuery}
+              onChange={(e) => setPasswordSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {filteredPasswordTeachers.length === 0 ? (
+              <p className="text-center text-muted-foreground">
+                لا يوجد معلمين مطابقين
+              </p>
+            ) : (
+              filteredPasswordTeachers.map((teacher) => (
+                <div
+                  key={teacher.id}
+                  className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                >
+                  <div>
+                    <p className="font-medium text-lg">{teacher.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      اسم المستخدم: {teacher.username}
+                    </p>
+                  </div>
+
+                  <div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setOpenPasswordEditorId(teacher.id)}
+                    >
+                      <KeyRound className="w-4 h-4 mr-2" />
+                      تغيير كلمة المرور
+                    </Button>
+
+                    {/* ⬇️ Password Update Nested Dialog */}
+                    <Dialog
+                      open={openPasswordEditorId === teacher.id}
+                      onOpenChange={(open) => {
+                        if (!open) {
+                          setOpenPasswordEditorId(null);
+                          setChangingPasswordId(null);
+                        }
+                      }}
+                    >
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>تغيير كلمة المرور</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                          <Label htmlFor={`password-${teacher.id}`}>
+                            كلمة المرور الجديدة لـ {teacher.name}
+                          </Label>
+                          <Input
+                            id={`password-${teacher.id}`}
+                            type="password"
+                            placeholder="أدخل كلمة المرور الجديدة"
+                            value={newPasswords[teacher.id] || ""}
+                            onChange={(e) =>
+                              setNewPasswords((prev) => ({
+                                ...prev,
+                                [teacher.id]: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+
+                        <DialogFooter className="pt-4">
+                          <Button
+                            onClick={() => {
+                              if (!newPasswords[teacher.id]) return;
+                              setChangingPasswordId(teacher.id);
+                              changePassword({
+                                id: teacher.id,
+                                new_password: newPasswords[teacher.id],
+                              });
+                            }}
+                            disabled={
+                              isChangingPassword &&
+                              changingPasswordId === teacher.id
+                            }
+                          >
+                            {isChangingPassword &&
+                            changingPasswordId === teacher.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <Key className="w-4 h-4 mr-2" />
+                            )}
+                            تأكيد التغيير
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    {/* ⬆️ End Nested Dialog */}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter className="pt-4">
+            <Button
+              
+              onClick={() => setPasswordDialogOpen(false)}
+            >
+              إغلاق
             </Button>
           </DialogFooter>
         </DialogContent>

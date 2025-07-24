@@ -14,21 +14,37 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { login } from "./services/LoginService";
+import { useToast } from "@/components/ui/use-toast";
+import { AxiosError } from "axios";
 
 const LoginPage = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const navigate = useNavigate();
-  const { mutate, isPending } = useMutation({
-    mutationFn: login,
-    onSuccess: () => {
-      navigate("/dashboard");
-    },
-    onError: (e) => {
-      console.log(e);
-    },
-  });
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const { mutate, isPending } = useMutation({
+  mutationFn: login,
+  onSuccess: () => {
+    navigate("/dashboard");
+  },
+  onError: (error) => {
+    const axiosError = error as AxiosError<{ data: string; message: string; status: number }>;
+
+    const errorMessage =
+      axiosError.response?.data?.data ||
+      axiosError.response?.data?.message ||
+      axiosError.message ||
+      "حدث خطأ أثناء تسجيل الدخول.";
+
+    toast({
+      title: "فشل تسجيل الدخول",
+      description: errorMessage,
+      variant: "destructive",
+    });
+  },
+});
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-purple-500 p-4">
@@ -40,16 +56,13 @@ const LoginPage = () => {
       >
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-primary">
-              Edux
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold text-primary">Edux</CardTitle>
             <CardDescription>قم بتسجيل الدخول للوصول إلى حسابك</CardDescription>
           </CardHeader>
           <CardContent>
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                console.log("Form submit prevented, mutation started.");
                 mutate({ username, password });
               }}
               className="space-y-4"

@@ -711,7 +711,7 @@ const FilesLibrary = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد حذف الملف</AlertDialogTitle>
+            <AlertDialogTitle className="text-right">تأكيد حذف الملف</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex gap-2">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
@@ -723,8 +723,8 @@ const FilesLibrary = () => {
                 }
               }}
             >
-              <AlertTriangle className="ml-2 h-4 w-4" />
-              حذف الطالب
+              <AlertTriangle className=" h-4 w-4" />
+              حذف الملف
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

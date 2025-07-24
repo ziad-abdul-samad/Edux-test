@@ -1,14 +1,16 @@
-// src/Features/Login/services/LoginService.ts
 import { get, post } from "@/lib/apiClient";
 import { LoginRequest, LoginResponse } from "../types/Login";
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await post<LoginResponse, LoginRequest>("/auth/login", data);
-  const { token, type , username } = response.data.data;
+  const { token, type, student, teacher, user } = response.data.data;
 
   localStorage.setItem("token", token);
   localStorage.setItem("role", type);
-  localStorage.setItem("username", username);
+
+  // Save the corresponding user object
+  const userObject = type === "student" ? student : type === "teacher" ? teacher : user;
+  localStorage.setItem("user", JSON.stringify(userObject));
 
   return response.data;
 };
