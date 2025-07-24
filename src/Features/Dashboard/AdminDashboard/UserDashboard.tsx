@@ -81,7 +81,7 @@ const UserDashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">لوحة تحكم المدير</h1>
+        <h1 className="md:text-3xl font-bold text-base">لوحة تحكم المدير</h1>
         <Button onClick={() => setIsAddTeacherOpen(true)}>
           <Plus className="ml-2 rtl-flip" size={16} />
           إضافة معلم جديد

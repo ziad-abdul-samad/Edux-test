@@ -283,8 +283,8 @@ const FilesLibrary = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">مكتبة الملفات</h1>
-        <div className="flex items-center gap-1">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 md:flex-row flex-col">
+          <div className="flex items-center gap-1 ">
           
           <Button onClick={() => setIsUploadDialogOpen(true)}> رفع ملف<Plus/> </Button>
           </div>

@@ -63,7 +63,7 @@ const StudentExamsPage = () => {
   );
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-1 md:p-4">
       <h1 className="text-3xl font-bold">الاختبارات المتاحة</h1>
       <p className="text-gray-600">اختر اختباراً للبدء.</p>
 

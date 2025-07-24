@@ -288,7 +288,7 @@ const LibraryPage = () => {
                             <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
                               {file.files_category.name}
                             </span>
-                            <span className="bg-gray-50 text-gray-700 px-2 py-0.5 rounded-full">
+                            <span className="bg-gray-50 text-gray-700 px-2 py-0.5 rounded-full hidden lg:block">
                               {new Date(file.created_at).toLocaleDateString(
                                 "EG-ar"
                               )}

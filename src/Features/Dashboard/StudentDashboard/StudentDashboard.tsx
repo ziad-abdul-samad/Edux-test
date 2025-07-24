@@ -54,7 +54,7 @@ const StudentDashboard = () => {
   const pastResults = data?.data.pastResults || [];
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-1 md:p-4">
       <h1 className="text-3xl font-bold">لوحة الطالب</h1>
       <p className="text-gray-600">
         مرحباً بك، هنا يمكنك رؤية تقدمك واختباراتك.
