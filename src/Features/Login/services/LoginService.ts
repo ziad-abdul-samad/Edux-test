@@ -1,5 +1,6 @@
-import { get, post } from "@/lib/apiClient";
+import {  post } from "@/lib/apiClient";
 import { LoginRequest, LoginResponse } from "../types/Login";
+import axios from "axios";
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await post<LoginResponse, LoginRequest>("/auth/login", data);
@@ -16,6 +17,6 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
 };
 
 export const logout = async (): Promise<void> => {
-  await get("/logout");
+  await axios.get("/logout");
   localStorage.clear();
 };

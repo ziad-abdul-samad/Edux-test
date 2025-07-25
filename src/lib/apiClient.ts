@@ -3,7 +3,7 @@ import axios, {
   AxiosRequestConfig,
   AxiosResponse,
   InternalAxiosRequestConfig,
-    AxiosProgressEvent,
+  AxiosProgressEvent,
 } from "axios";
 
 export interface ApiResponse<T> {
@@ -37,8 +37,6 @@ apiClient.interceptors.response.use(
   }
 );
 
-
-
 export const post = <T, U = unknown>(
   url: string,
   data?: U,
@@ -50,5 +48,5 @@ export interface ProgressConfig extends AxiosRequestConfig {
 }
 
 export default {
-  post
+  post,
 };
