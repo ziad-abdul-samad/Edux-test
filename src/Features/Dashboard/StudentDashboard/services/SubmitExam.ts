@@ -9,12 +9,18 @@ export const submitExam = async (
 
   payload.questions.forEach((question, qIndex) => {
     formData.append(`questions[${qIndex}][id]`, String(question.id));
-    question.answers.forEach((answer, aIndex) => {
-      formData.append(
-        `questions[${qIndex}][answers][${aIndex}][id]`,
-        String(answer.id)
-      );
-    });
+
+    if (question.answers && question.answers.length > 0) {
+      question.answers.forEach((answer, aIndex) => {
+        formData.append(
+          `questions[${qIndex}][answers][${aIndex}][id]`,
+          String(answer.id)
+        );
+      });
+    } else {
+      // 👇 إرسال عنصر فارغ للإشارة إلى مصفوفة فاضية
+      formData.append(`questions[${qIndex}][answers][0][id]`, '');
+    }
   });
 
   const response = await post<SubmitExamResponse>(

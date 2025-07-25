@@ -119,15 +119,17 @@ const ResultsPage = () => {
               ([examId, examResults], index) => {
                 const exam = examResults[0].exam;
                 const student = examResults[0].student;
-                const scoreSum = examResults.reduce(
+                
+                // Total questions in the exam
+                const totalQuestions = exam.questions.length;
+                
+                // Sum of all scores for this exam
+                const totalScore = examResults.reduce(
                   (acc, cur) => acc + parseFloat(cur.score),
                   0
                 );
-                const total = examResults.reduce(
-                  (acc, cur) => acc + parseFloat(cur.total_questions),
-                  0
-                );
-                const percentage = Math.round((scoreSum / total) * 100);
+                
+                const percentage = Math.round((totalScore / totalQuestions) * 100);
 
                 return (
                   <motion.div
@@ -150,10 +152,10 @@ const ResultsPage = () => {
                     <div className="bg-gray-50 rounded-md p-3 mt-3 flex justify-between items-center">
                       <div>
                         <p className="text-sm text-gray-500">
-                          الأسئلة: {total}
+                          عدد الأسئلة: {totalQuestions}
                         </p>
                         <p className="text-sm text-gray-500">
-                          النقاط: {scoreSum}
+                          النقاط: {totalScore}
                         </p>
                       </div>
                       <div

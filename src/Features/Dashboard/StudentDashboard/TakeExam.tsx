@@ -187,57 +187,147 @@ const TakeExam = () => {
     </Card>
   );
 
-  const renderQuestionNavigator = () => (
-    <>
-      <div className="flex flex-wrap gap-2 justify-center mb-4">
-        {questions.map((q, index) => {
-          const isCurrent = index === currentQuestionIndex;
-          const isAnswered = !!selectedAnswers[q.id];
-          const isVisited = index < currentQuestionIndex && !isAnswered;
+  const renderQuestionNavigator = () => {
+    const totalQuestions = questions.length;
+    const currentPage = Math.floor(currentQuestionIndex / 10);
+    const questionsPerPage = 10;
+    const totalPages = Math.ceil(totalQuestions / questionsPerPage);
+    
+    const startIndex = currentPage * questionsPerPage;
+    const endIndex = Math.min(startIndex + questionsPerPage, totalQuestions);
 
-          const baseClasses =
-            "w-8 h-8 text-sm rounded-full border transition-all duration-200";
+    const getQuestionStatus = (questionId: number, index: number) => {
+      const isAnswered = !!selectedAnswers[questionId];
+      const isVisited = index < currentQuestionIndex && !isAnswered;
+      const isCurrent = index === currentQuestionIndex;
 
-          let statusClass = "bg-white hover:bg-gray-100 text-gray-600";
-          if (isAnswered) {
-            statusClass = "bg-green-100 text-green-800 border-green-400";
-          } else if (isVisited) {
-            statusClass = "bg-yellow-100 text-yellow-800 border-yellow-400";
-          }
+      if (isAnswered) return "answered";
+      if (isVisited) return "visited";
+      if (isCurrent) return "current";
+      return "unvisited";
+    };
 
-          const currentClass = isCurrent
-            ? "border-blue-500 font-bold"
-            : "border-gray-300";
+    return (
+      <>
+        <div className="flex flex-wrap gap-2 justify-center mb-4">
+          {/* Always show first page button if not on first page */}
+          {currentPage > 0 && (
+            <>
+              <button
+                onClick={() => setCurrentQuestionIndex(0)}
+                className={`w-8 h-8 text-sm rounded-full border ${
+                  getQuestionStatus(questions[0].id, 0) === "answered"
+                    ? "bg-green-100 text-green-800 border-green-400"
+                    : getQuestionStatus(questions[0].id, 0) === "visited"
+                    ? "bg-yellow-100 text-yellow-800 border-yellow-400"
+                    : "bg-white hover:bg-gray-100 text-gray-600 border-gray-300"
+                }`}
+              >
+                1
+              </button>
+              {currentPage > 1 && (
+                <span className="w-8 h-8 flex items-center justify-center">...</span>
+              )}
+            </>
+          )}
 
-          return (
+          {/* Current page questions */}
+          {questions.slice(startIndex, endIndex).map((q, index) => {
+            const globalIndex = startIndex + index;
+            const status = getQuestionStatus(q.id, globalIndex);
+
+            return (
+              <button
+                key={q.id}
+                onClick={() => setCurrentQuestionIndex(globalIndex)}
+                className={`w-8 h-8 text-sm rounded-full border transition-all duration-200 ${
+                  status === "answered"
+                    ? "bg-green-100 text-green-800 border-green-400"
+                    : status === "visited"
+                    ? "bg-yellow-100 text-yellow-800 border-yellow-400"
+                    : status === "current"
+                    ? "border-blue-500 font-bold bg-white"
+                    : "bg-white hover:bg-gray-100 text-gray-600 border-gray-300"
+                }`}
+              >
+                {globalIndex + 1}
+              </button>
+            );
+          })}
+
+          {/* Show last page button if not on last page */}
+          {currentPage < totalPages - 1 && (
+            <>
+              {currentPage < totalPages - 2 && (
+                <span className="w-8 h-8 flex items-center justify-center">...</span>
+              )}
+              <button
+                onClick={() => setCurrentQuestionIndex(totalQuestions - 1)}
+                className={`w-8 h-8 text-sm rounded-full border ${
+                  getQuestionStatus(questions[totalQuestions - 1].id, totalQuestions - 1) === "answered"
+                    ? "bg-green-100 text-green-800 border-green-400"
+                    : getQuestionStatus(questions[totalQuestions - 1].id, totalQuestions - 1) === "visited"
+                    ? "bg-yellow-100 text-yellow-800 border-yellow-400"
+                    : "bg-white hover:bg-gray-100 text-gray-600 border-gray-300"
+                }`}
+              >
+                {totalQuestions}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Page navigation controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mb-4">
             <button
-              key={q.id}
-              onClick={() => setCurrentQuestionIndex(index)}
-              className={`${baseClasses} ${statusClass} ${currentClass}`}
+              onClick={() => {
+                const prevPage = Math.max(0, currentPage - 1);
+                setCurrentQuestionIndex(prevPage * questionsPerPage);
+              }}
+              disabled={currentPage === 0}
+              className="px-3 py-1 text-sm border rounded disabled:opacity-50"
             >
-              {index + 1}
+              السابق
             </button>
-          );
-        })}
-      </div>
+            <span className="px-3 py-1 text-sm">
+              الصفحة {currentPage + 1} من {totalPages}
+            </span>
+            <button
+              onClick={() => {
+                const nextPage = Math.min(totalPages - 1, currentPage + 1);
+                setCurrentQuestionIndex(nextPage * questionsPerPage);
+              }}
+              disabled={currentPage === totalPages - 1}
+              className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+            >
+              التالي
+            </button>
+          </div>
+        )}
 
-      {/* Legend (Arabic) */}
-      <div className="flex justify-center gap-4 text-sm text-gray-700 mb-6">
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded-full bg-green-100 border border-green-400" />
-          <span>تمت الإجابة</span>
+        {/* Legend (Arabic) */}
+        <div className="flex justify-center gap-4 text-sm text-gray-700 mb-6">
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-green-100 border border-green-400" />
+            <span>تمت الإجابة</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-yellow-100 border border-yellow-400" />
+            <span>تم تخطيه</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-white border border-gray-300" />
+            <p>لم يتم زيارته</p>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-white border border-blue-500" />
+            <p>السؤال الحالي</p>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded-full bg-yellow-100 border border-yellow-400" />
-          <span>تم تخطيه</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded-full bg-white border border-gray-300" />
-          <p>لم يتم زيارته</p>
-        </div>
-      </div>
-    </>
-  );
+      </>
+    );
+  };
 
   const IMAGE_BASE_URL = "https://edux.site/";
 
