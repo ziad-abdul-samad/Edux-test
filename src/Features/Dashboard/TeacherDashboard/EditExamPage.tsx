@@ -55,6 +55,7 @@ const EditExamPage = () => {
   const [scheduleQuiz, setScheduleQuiz] = useState(false);
   const [availableFrom, setAvailableFrom] = useState<Date | undefined>();
   const [availableUntil, setAvailableUntil] = useState<Date | undefined>();
+  const [attemptLimit, setAttemptLimit] = useState<string>("1");
   const [questions, setQuestions] = useState([
     {
       id: "q1",
@@ -83,7 +84,7 @@ const EditExamPage = () => {
       setScheduleQuiz(exam.is_scheduled === 1);
       setAvailableFrom(exam.start_at ? new Date(exam.start_at) : undefined);
       setAvailableUntil(exam.end_at ? new Date(exam.end_at) : undefined);
-
+      setAttemptLimit(exam.attempt_limit?.toString() || "1");
       setQuestions(
         exam.questions.map((q) => ({
           id: `q${q.id}`,
@@ -289,7 +290,14 @@ const EditExamPage = () => {
       });
       return;
     }
-
+    if (isNaN(Number(attemptLimit)) || Number(attemptLimit) < 1) {
+      toast({
+        title: "عدد المحاولات غير صالح",
+        description: "يرجى إدخال عدد محاولات صحيح (1 أو أكثر)",
+        variant: "destructive",
+      });
+      return;
+    }
     if (scheduleQuiz) {
       if (!availableFrom || !availableUntil) {
         toast({
@@ -355,7 +363,7 @@ const EditExamPage = () => {
       end_at: scheduleQuiz
         ? availableUntil?.toISOString().slice(0, 19) ?? null
         : null,
-      attempt_limit: 1,
+      attempt_limit: Number(attemptLimit),
       questions: questions.map((q) => ({
         id: q.id.startsWith("q") ? q.id.substring(1) : q.id,
         text: q.text,
@@ -453,7 +461,20 @@ const EditExamPage = () => {
                 </span>
               </div>
             </div>
-
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Timer className="h-4 w-4" />
+                حد المحاولات (عدد المحاولات المسموح بها للطالب)
+              </Label>
+              <Input
+                id="attemptLimit"
+                type="number"
+                min="1"
+                placeholder="مثال: 1"
+                value={attemptLimit}
+                onChange={(e) => setAttemptLimit(e.target.value)}
+              />
+            </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <CalendarClock className="h-4 w-4" />

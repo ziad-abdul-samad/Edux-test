@@ -44,6 +44,7 @@ const CreateQuiz = () => {
   const [scheduleQuiz, setScheduleQuiz] = useState(false);
   const [availableFrom, setAvailableFrom] = useState<Date | undefined>();
   const [availableUntil, setAvailableUntil] = useState<Date | undefined>();
+  const [attemptLimit, setAttemptLimit] = useState<string>("1"); // default 1
 
   // Questions + choices state
   const [questions, setQuestions] = useState([
@@ -250,6 +251,14 @@ const CreateQuiz = () => {
       });
       return;
     }
+    if (isNaN(Number(attemptLimit)) || Number(attemptLimit) < 1) {
+      toast({
+        title: "عدد المحاولات غير صالح",
+        description: "يرجى إدخال عدد محاولات صحيح (1 أو أكثر)",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (scheduleQuiz) {
       if (!availableFrom || !availableUntil) {
@@ -314,7 +323,7 @@ const CreateQuiz = () => {
       end_at: scheduleQuiz
         ? availableUntil?.toISOString().slice(0, 19) ?? null
         : null,
-      attempt_limit: 1,
+      attempt_limit: Number(attemptLimit),
       questions: questions.map((q) => ({
         text: q.text,
         type: "multiple_choice",
@@ -408,7 +417,20 @@ const CreateQuiz = () => {
                 </span>
               </div>
             </div>
-
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Timer className="h-4 w-4" />
+                حد المحاولات (عدد المحاولات المسموح بها للطالب)
+              </Label>
+              <Input
+                id="attemptLimit"
+                type="number"
+                min="1"
+                placeholder="مثال: 1"
+                value={attemptLimit}
+                onChange={(e) => setAttemptLimit(e.target.value)}
+              />
+            </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <CalendarClock className="h-4 w-4" />

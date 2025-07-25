@@ -3,6 +3,7 @@ import axios, {
   AxiosRequestConfig,
   AxiosResponse,
   InternalAxiosRequestConfig,
+    AxiosProgressEvent,
 } from "axios";
 
 export interface ApiResponse<T> {
@@ -13,7 +14,6 @@ export interface ApiResponse<T> {
 
 const apiClient = axios.create({
   baseURL: "https://edux.site/api",
-  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -37,10 +37,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-export const get = <T>(
-  url: string,
-  config?: AxiosRequestConfig
-): Promise<AxiosResponse<T>> => apiClient.get<T>(url, config);
+
 
 export const post = <T, U = unknown>(
   url: string,
@@ -48,20 +45,10 @@ export const post = <T, U = unknown>(
   config?: AxiosRequestConfig
 ): Promise<AxiosResponse<T>> => apiClient.post<T>(url, data, config);
 
-export const put = <T, U = unknown>(
-  url: string,
-  data?: U,
-  config?: AxiosRequestConfig
-): Promise<AxiosResponse<T>> => apiClient.put<T>(url, data, config);
-
-export const del = <T>(
-  url: string,
-  config?: AxiosRequestConfig
-): Promise<AxiosResponse<T>> => apiClient.delete<T>(url, config);
+export interface ProgressConfig extends AxiosRequestConfig {
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void;
+}
 
 export default {
-  get,
-  post,
-  put,
-  del,
+  post
 };

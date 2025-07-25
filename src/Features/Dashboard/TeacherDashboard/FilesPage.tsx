@@ -54,6 +54,7 @@ import {
 import { addNewFile } from "./services/AddNewFile";
 import { deleteFile } from "./services/DeleteFile";
 import { UpdateFileCat } from "./services/UpdateFileCat";
+import { Progress } from "@/components/ui/progress";
 
 const FilesLibrary = () => {
   //Add Category
@@ -130,6 +131,8 @@ const FilesLibrary = () => {
     queryFn: getPublishedFiles,
   });
   //Add file
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [selectedUploadCategoryId, setSelectedUploadCategoryId] = useState<
     number | null
@@ -137,12 +140,39 @@ const FilesLibrary = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const { mutate: addingFile } = useMutation({
-    mutationFn: addNewFile,
+    mutationFn: (data: {
+      formData: FormData;
+      onProgress: (progress: number) => void;
+    }) => {
+      setIsUploading(true);
+      setUploadProgress(0);
+      return addNewFile(data.formData, (progressEvent) => {
+        if (progressEvent.total) {
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          data.onProgress(progress);
+        }
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["publishedFiles"] });
+      setIsUploading(false);
+      setUploadProgress(0);
+      setIsUploadDialogOpen(false);
+      toast({
+        title: "تم رفع الملف بنجاح",
+        description: "تمت إضافة الملف إلى المكتبة",
+      });
     },
-    onError: (e) => {
-      console.error("Error adding file:", e);
+    onError: () => {
+      setIsUploading(false);
+      setUploadProgress(0);
+      toast({
+        title: "خطأ في الرفع",
+        description: "فشل في رفع الملف",
+        variant: "destructive",
+      });
     },
   });
 
@@ -213,7 +243,8 @@ const FilesLibrary = () => {
   });
 
   if (categoriesLoading || filesLoading) {
-    return <div className="py-8 flex  justify-center items-center h-full w-full  rounded-md max-w-md mx-auto">
+    return (
+      <div className="py-8 flex  justify-center items-center h-full w-full  rounded-md max-w-md mx-auto">
         <svg
           className="animate-spin h-10 w-10 text-purple-600"
           xmlns="http://www.w3.org/2000/svg"
@@ -234,7 +265,8 @@ const FilesLibrary = () => {
             d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
           ></path>
         </svg>
-      </div>;
+      </div>
+    );
   }
   const cleanFileName = (fullPath: string) => {
     // Step 1: Get the last part after "/"
@@ -285,13 +317,15 @@ const FilesLibrary = () => {
         <h1 className="text-3xl font-bold">مكتبة الملفات</h1>
         <div className="flex items-center gap-1 md:flex-row flex-col">
           <div className="flex items-center gap-1 ">
-          
-          <Button onClick={() => setIsUploadDialogOpen(true)}> رفع ملف<Plus/> </Button>
+            <Button onClick={() => setIsUploadDialogOpen(true)}>
+              {" "}
+              رفع ملف
+              <Plus />{" "}
+            </Button>
           </div>
 
           <Button variant="outline" onClick={() => setIsManageDialogOpen(true)}>
-            
-            إدارة التصنيفات <Cog/>
+            إدارة التصنيفات <Cog />
           </Button>
         </div>
       </div>
@@ -385,10 +419,14 @@ const FilesLibrary = () => {
                     >
                       <Trash2 size={16} />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => {
-                    setEditFileCat(file.category_id);
-                    setEditFileDialogOpenId(file.id);
-                  }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditFileCat(file.category_id);
+                        setEditFileDialogOpenId(file.id);
+                      }}
+                    >
                       <Edit size={16} />
                     </Button>
                   </div>
@@ -628,7 +666,14 @@ const FilesLibrary = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+      <Dialog
+        open={isUploadDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isUploading) {
+            setIsUploadDialogOpen(false);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>رفع ملف جديد</DialogTitle>
@@ -637,35 +682,14 @@ const FilesLibrary = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!selectedFile || !selectedUploadCategoryId) {
-                toast({
-                  title: "خطأ",
-                  description: "يرجى اختيار الملف والتصنيف",
-                  variant: "destructive",
-                });
-                return;
-              }
-
-              const formData = new FormData();
-              formData.append("file", selectedFile);
-              formData.append("category_id", String(selectedUploadCategoryId));
-
-              addingFile(formData);
-              setIsUploadDialogOpen(false);
-              setSelectedFile(null);
-              setSelectedUploadCategoryId(null);
-            }}
-          >
+          <form className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="file">اختر الملف</Label>
               <Input
                 type="file"
                 id="file"
                 required
+                disabled={isUploading}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   setSelectedFile(file || null);
@@ -679,6 +703,7 @@ const FilesLibrary = () => {
                 onValueChange={(value) =>
                   setSelectedUploadCategoryId(Number(value))
                 }
+                disabled={isUploading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="اختر تصنيفًا" />
@@ -693,14 +718,64 @@ const FilesLibrary = () => {
               </Select>
             </div>
 
+            {isUploading && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>جاري الرفع...</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
+              </div>
+            )}
+
             <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => setIsUploadDialogOpen(false)}
+                type="button"
+                onClick={() => {
+                  if (!isUploading) {
+                    setIsUploadDialogOpen(false);
+                  }
+                }}
+                disabled={isUploading}
               >
                 إلغاء
               </Button>
-              <Button type="submit">رفع</Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  if (!selectedFile || !selectedUploadCategoryId) {
+                    toast({
+                      title: "خطأ",
+                      description: "يرجى اختيار الملف والتصنيف",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  const formData = new FormData();
+                  formData.append("file", selectedFile);
+                  formData.append(
+                    "category_id",
+                    String(selectedUploadCategoryId)
+                  );
+
+                  addingFile({
+                    formData,
+                    onProgress: setUploadProgress,
+                  });
+                }}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    جاري الرفع...
+                  </>
+                ) : (
+                  "رفع"
+                )}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -711,7 +786,9 @@ const FilesLibrary = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-right">تأكيد حذف الملف</AlertDialogTitle>
+            <AlertDialogTitle className="text-right">
+              تأكيد حذف الملف
+            </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex gap-2">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
@@ -729,7 +806,7 @@ const FilesLibrary = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-               <Dialog
+      <Dialog
         open={editFileDialogOpenId !== null}
         onOpenChange={(open) => {
           if (!open) {

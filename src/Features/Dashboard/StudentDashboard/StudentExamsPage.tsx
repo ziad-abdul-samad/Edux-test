@@ -116,6 +116,14 @@ const StudentExamsPage = () => {
                         {exam.description}
                       </p>
                     )}
+                    <p className="text-sm text-gray-500">
+                      المحاولات المسموحة: {exam.attempt_limit}
+                    </p>
+                    {exam.attempt_limit > "1" && (
+                      <p className="text-sm text-gray-500">
+                        المحاولات المتبقية: {exam.attemptsCount}
+                      </p>
+                    )}
                     {exam.is_scheduled === 1 && exam.start_at && (
                       <div className="mt-2 flex items-center text-sm">
                         <Clock className="h-3 w-3 text-purple-700 mr-1" />

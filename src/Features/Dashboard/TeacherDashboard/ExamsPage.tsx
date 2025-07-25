@@ -309,6 +309,12 @@ const ExamsPage = () => {
                       {exam.questions.length}
                     </p>
                   </div>
+                  <div>
+                    <h3 className="font-medium text-sm">عدد المحاولات المسموح بها</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {exam.attempt_limit}
+                    </p>
+                  </div>
 
                   {exam.duration_minutes && (
                     <div>
