@@ -36,7 +36,21 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+export const get = <T>(
+  url: string,
+  config?: AxiosRequestConfig
+): Promise<AxiosResponse<T>> => apiClient.get<T>(url, config);
 
+export const put = <T, U = unknown>(
+  url: string,
+  data?: U,
+  config?: AxiosRequestConfig
+): Promise<AxiosResponse<T>> => apiClient.put<T>(url, data, config);
+
+export const del = <T>(
+  url: string,
+  config?: AxiosRequestConfig
+): Promise<AxiosResponse<T>> => apiClient.delete<T>(url, config);
 export const post = <T, U = unknown>(
   url: string,
   data?: U,
@@ -48,5 +62,8 @@ export interface ProgressConfig extends AxiosRequestConfig {
 }
 
 export default {
+  get,
   post,
+  put,
+  del,
 };
