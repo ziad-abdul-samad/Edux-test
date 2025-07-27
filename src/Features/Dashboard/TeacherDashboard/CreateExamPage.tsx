@@ -478,7 +478,7 @@ const CreateQuiz = () => {
           {scheduleQuiz && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
               <div className="space-y-2">
-                <Label>تاريخ البدء</Label>
+                <Label className="p-1">تاريخ البدء</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start">
@@ -497,7 +497,7 @@ const CreateQuiz = () => {
                   </PopoverContent>
                 </Popover>
                 {availableFrom && (
-                  <div className="flex justify-end mt-2">
+                  <div className="flex justify-start mt-2">
                     <Input
                       type="time"
                       className="w-40"
@@ -514,7 +514,7 @@ const CreateQuiz = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>تاريخ الانتهاء</Label>
+                <Label className="p-1">تاريخ الانتهاء</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start">
@@ -533,7 +533,7 @@ const CreateQuiz = () => {
                   </PopoverContent>
                 </Popover>
                 {availableUntil && (
-                  <div className="flex justify-end mt-2">
+                  <div className="flex justify-start mt-2">
                     <Input
                       type="time"
                       className="w-40"
