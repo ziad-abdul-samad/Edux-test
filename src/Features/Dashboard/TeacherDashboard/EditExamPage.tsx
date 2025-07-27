@@ -347,6 +347,15 @@ const EditExamPage = () => {
       });
     });
     if (!valid) return;
+    function formatDateForBackend(date: Date): string {
+      const year = date.getFullYear();
+      const month = `${date.getMonth() + 1}`.padStart(2, "0");
+      const day = `${date.getDate()}`.padStart(2, "0");
+      const hours = `${date.getHours()}`.padStart(2, "0");
+      const minutes = `${date.getMinutes()}`.padStart(2, "0");
+      const seconds = `${date.getSeconds()}`.padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
 
     // Map to UpdateExamRequest
     const payload: UpdateExamRequest = {
@@ -358,11 +367,16 @@ const EditExamPage = () => {
       allow_review: allowReview,
       is_scheduled: scheduleQuiz,
       start_at: scheduleQuiz
-        ? availableFrom?.toISOString().slice(0, 19) ?? null
+        ? availableFrom
+          ? formatDateForBackend(availableFrom)
+          : null
         : null,
       end_at: scheduleQuiz
-        ? availableUntil?.toISOString().slice(0, 19) ?? null
+        ? availableUntil
+          ? formatDateForBackend(availableUntil)
+          : null
         : null,
+
       attempt_limit: Number(attemptLimit),
       questions: questions.map((q) => ({
         id: q.id.startsWith("q") ? q.id.substring(1) : q.id,
@@ -379,6 +393,11 @@ const EditExamPage = () => {
 
     mutation.mutate(payload);
   };
+  function formatTimeForInput(date: Date): string {
+    const hours = `${date.getHours()}`.padStart(2, "0");
+    const minutes = `${date.getMinutes()}`.padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
 
   return (
     <div className="space-y-6 pb-10">
@@ -519,12 +538,14 @@ const EditExamPage = () => {
                     <Input
                       type="time"
                       className="w-40"
-                      defaultValue="08:00"
+                      value={
+                        availableFrom ? formatTimeForInput(availableFrom) : ""
+                      }
                       onChange={(e) => {
                         const [h, m] = e.target.value.split(":").map(Number);
-                        const d = new Date(availableFrom);
+                        const d = new Date(availableFrom!);
                         d.setHours(h, m);
-                        setAvailableFrom(d);
+                        setAvailableFrom(new Date(d));
                       }}
                     />
                   </div>
@@ -555,12 +576,14 @@ const EditExamPage = () => {
                     <Input
                       type="time"
                       className="w-40"
-                      defaultValue="23:59"
+                      value={
+                        availableUntil ? formatTimeForInput(availableUntil) : ""
+                      }
                       onChange={(e) => {
                         const [h, m] = e.target.value.split(":").map(Number);
-                        const d = new Date(availableUntil);
+                        const d = new Date(availableUntil!);
                         d.setHours(h, m);
-                        setAvailableUntil(d);
+                        setAvailableUntil(new Date(d));
                       }}
                     />
                   </div>
@@ -575,13 +598,6 @@ const EditExamPage = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">الأسئلة</h2>
-          <Button
-            onClick={handleAddQuestion}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Plus className="ml-2 rtl-flip" size={16} />
-            إضافة سؤال
-          </Button>
         </div>
 
         {questions.map((q, qi) => (
@@ -697,25 +713,31 @@ const EditExamPage = () => {
       </div>
 
       {/* Submit */}
-      <div className="flex justify-end">
-        <Button
-          size="lg"
-          onClick={handleSubmit}
-          className="bg-purple-600 hover:bg-purple-700"
-          disabled={mutation.isPending} // Disable button during submission
-        >
-          {mutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              جاري الحفظ...
-            </>
-          ) : (
-            <>
-              حفظ التعديلات
-              <ArrowRight className="mr-2 rtl-flip" size={16} />
-            </>
-          )}
+      <div className="flex justify-between lg:flex-row flex-col gap-2">
+        <Button onClick={handleAddQuestion} variant="outline">
+          <Plus className="ml-2 rtl-flip" size={16} />
+          إضافة سؤال
         </Button>
+        <div className="flex lg:justify-end">
+          <Button
+            size="lg"
+            onClick={handleSubmit}
+            className="bg-purple-600 hover:bg-purple-700"
+            disabled={mutation.isPending} // Disable button during submission
+          >
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                جاري الحفظ...
+              </>
+            ) : (
+              <>
+                حفظ التعديلات
+                <ArrowRight className="mr-2 rtl-flip" size={16} />
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

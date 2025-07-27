@@ -269,6 +269,7 @@ const CreateQuiz = () => {
         });
         return;
       }
+
       if (availableFrom >= availableUntil) {
         toast({
           title: "تواريخ غير صالحة",
@@ -277,7 +278,18 @@ const CreateQuiz = () => {
         });
         return;
       }
+
+      const now = new Date();
+      if (availableUntil < now) {
+        toast({
+          title: "تاريخ غير صالح",
+          description: "لا يمكن أن يكون تاريخ الانتهاء قبل اليوم الحالي",
+          variant: "destructive",
+        });
+        return;
+      }
     }
+
     let valid = true;
     questions.forEach((q, qi) => {
       if (!q.text.trim()) {
@@ -318,11 +330,16 @@ const CreateQuiz = () => {
       allow_review: allowReview,
       is_scheduled: scheduleQuiz,
       start_at: scheduleQuiz
-        ? availableFrom?.toISOString().slice(0, 19) ?? null
+        ? availableFrom
+          ? formatDateForBackend(availableFrom)
+          : null
         : null,
       end_at: scheduleQuiz
-        ? availableUntil?.toISOString().slice(0, 19) ?? null
+        ? availableUntil
+          ? formatDateForBackend(availableUntil)
+          : null
         : null,
+
       attempt_limit: Number(attemptLimit),
       questions: questions.map((q) => ({
         text: q.text,
@@ -337,6 +354,15 @@ const CreateQuiz = () => {
 
     mutation.mutate(payload);
   };
+  function formatDateForBackend(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    const hours = `${date.getHours()}`.padStart(2, "0");
+    const minutes = `${date.getMinutes()}`.padStart(2, "0");
+    const seconds = `${date.getSeconds()}`.padStart(2, "0");
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
 
   return (
     <div className="space-y-6 pb-10">
@@ -531,13 +557,6 @@ const CreateQuiz = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">الأسئلة</h2>
-          <Button
-            onClick={handleAddQuestion}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Plus className="ml-2 rtl-flip" size={16} />
-            إضافة سؤال
-          </Button>
         </div>
 
         {questions.map((q, qi) => (
@@ -653,8 +672,12 @@ const CreateQuiz = () => {
       </div>
 
       {/* Submit */}
-      <div className="flex justify-end">
-        <div className="flex justify-end">
+      <div className="flex justify-between lg:flex-row flex-col gap-2">
+        <Button onClick={handleAddQuestion} variant="outline">
+          <Plus className="ml-2 rtl-flip" size={16} />
+          إضافة سؤال جديد
+        </Button>
+        <div className="flex lg:justify-end">
           <Button
             size="lg"
             onClick={handleSubmit}

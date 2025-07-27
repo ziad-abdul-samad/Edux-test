@@ -1,39 +1,21 @@
-export interface StudentExamAnswersResponse {
-  data: StudentExamAnswer[];
+export interface ResultsResponse {
+  data: ExamResult[];
   message: string;
   status: number;
 }
 
-export interface StudentExamAnswer {
-  id: number;
-  student_id: number;
-  exam_id: number;
-  question_id: number;
-  answer_id: number;
-  score: string;
-  total_questions: string;
-  created_at: string;
-  updated_at: string;
-  student: Student;
-  exam: Exam;
-  answer: Answer;
+export interface ExamResult {
+  exam: ExamDetails;
+  submitted_at: string; // ISO timestamp
+  answers: AnswerResult[];
 }
 
-export interface Student {
-  id: number;
-  name: string;
-  username: string;
-  is_active: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Exam {
+export interface ExamDetails {
   id: number;
   title: string;
   attempt_limit: string;
-  description: string;
-  duration_minutes: number;
+  description: string | null;
+  duration_minutes: number | null;
   is_active: number;
   allow_review: number;
   is_scheduled: number;
@@ -42,25 +24,12 @@ export interface Exam {
   teacher_id: number;
   created_at: string;
   updated_at: string;
-  questions: Question[];
 }
 
-export interface Question {
-  id: number;
-  text: string;
-  image: string | null;
-  exam_id: number;
-  type: string;
-  created_at: string;
-  updated_at: string;
-  answers: Answer[];
-}
-
-export interface Answer {
-  id: number;
+export interface AnswerResult {
   question_id: number;
-  text: string;
-  is_correct: boolean;
+  answer_id: number | null;
+  score: string; // it's a string in the API
+  total_questions: string;
   created_at: string;
-  updated_at: string;
 }

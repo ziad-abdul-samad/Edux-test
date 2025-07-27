@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { GetActiveExams } from "./services/GetActiveExams";
-import { BookOpen, Search, Clock, Timer } from "lucide-react";
+import { BookOpen, Search, Clock, Timer, Lock } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,43 +21,35 @@ const StudentExamsPage = () => {
     queryFn: GetActiveExams,
   });
 
+  const isExamAvailable = (exam) => {
+    if (exam.is_scheduled !== 1) return true;
+    
+    const now = new Date();
+    const startDate = new Date(exam.start_at.replace(' ', 'T') + 'Z');
+    const endDate = new Date(exam.end_at.replace(' ', 'T') + 'Z');
+    
+    console.log('Now:', now);
+    console.log('Start Date:', startDate);
+    console.log('End Date:', endDate);
+    console.log('Is available:', now >= startDate && now <= endDate);
+    
+    return now >= startDate && now <= endDate;
+  };
+
   if (isPending) {
-    return (
-      <div className="py-8 flex  justify-center items-center h-full w-full  rounded-md max-w-md mx-auto">
-        <svg
-          className="animate-spin h-10 w-10 text-purple-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-          ></path>
-        </svg>
-      </div>
-    );
+    return <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
+      <svg className="animate-spin h-10 w-10 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+    </div>;
   }
 
   if (error) {
-    return (
-      <div className="text-red-500 text-center mt-10">
-        حدث خطأ أثناء جلب البيانات
-      </div>
-    );
+    return <div className="text-red-500 text-center mt-10">حدث خطأ أثناء جلب البيانات</div>;
   }
 
   const exams = data?.data.exams || [];
-
   const filteredExams = exams.filter((exam) =>
     exam.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -82,67 +74,83 @@ const StudentExamsPage = () => {
             لا يوجد اختبارات متاحة حالياً
           </div>
         ) : (
-          filteredExams.map((exam, index) => (
-            <motion.div
-              key={exam.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <Card className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-100">
-                    <BookOpen className="h-5 w-5 text-purple-700" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between">
-                      <h3 className="font-medium">{exam.title}</h3>
-                      {exam.duration_minutes && (
-                        <Badge
-                          variant="outline"
-                          className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1"
-                        >
-                          <Timer className="h-3 w-3" /> {exam.duration_minutes}{" "}
-                          دقيقة
-                        </Badge>
+          filteredExams.map((exam, index) => {
+            const available = isExamAvailable(exam);
+            return (
+              <motion.div
+                key={exam.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <Card className={`p-4 hover:shadow-md transition-shadow ${!available ? 'opacity-80' : ''}`}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-100">
+                      {!available ? (
+                        <Lock className="h-5 w-5 text-purple-700" />
+                      ) : (
+                        <BookOpen className="h-5 w-5 text-purple-700" />
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">
-                      {exam.questions_count} سؤال |{" "}
-                      {exam.teacher?.name ?? "المعلم"}
-                    </p>
-                    {exam.description && (
-                      <p className="text-sm text-gray-500 mt-2">
-                        {exam.description}
+                    <div className="flex-1">
+                      <div className="flex justify-between">
+                        <h3 className="font-medium">{exam.title}</h3>
+                        {exam.duration_minutes && (
+                          <Badge
+                            variant="outline"
+                            className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1"
+                          >
+                            <Timer className="h-3 w-3" /> {exam.duration_minutes} دقيقة
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {exam.questions_count} سؤال | {exam.teacher?.name ?? "المعلم"}
                       </p>
-                    )}
-                    <p className="text-sm text-gray-500">
-                      المحاولات المسموحة: {exam.attempt_limit}
-                    </p>
+                      {exam.description && (
+                        <p className="text-sm text-gray-500 mt-2">
+                          {exam.description}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-500">
+                        المحاولات المسموحة: {exam.attempt_limit}
+                      </p>
                       <p className="text-sm text-gray-500">
                         المحاولات المنجزة: {exam.attemptsCount}
                       </p>
-                    {exam.is_scheduled === 1 && exam.start_at && (
-                      <div className="mt-2 flex items-center text-sm">
-                        <Clock className="h-3 w-3 text-purple-700 mr-1" />
-                        <span className="text-purple-700">
-                          الاختبار مجدول من {exam.start_at} إلى {exam.end_at}
-                        </span>
-                      </div>
-                    )}
+                      {exam.is_scheduled === 1 && exam.start_at && (
+                        <div className="mt-2 text-purple-700 flex items-start text-sm flex-col">
+                          <span>الاختبار مجدول</span>
+                          <span>من {exam.start_at}</span>
+                          <span>إلى {exam.end_at}</span>
+                          {!available && (
+                            <span className="text-red-500 mt-1">
+                              {new Date() < new Date(exam.start_at.replace(' ', 'T') + 'Z') 
+                                ? 'غير متاح حتى الآن' 
+                                : 'انتهى وقت الاختبار'}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    onClick={() => navigate(`/dashboard/exams/take/${exam.id}`)}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    بدء الاختبار
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-          ))
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      onClick={() => navigate(`/dashboard/exams/take/${exam.id}`)}
+                      className="bg-purple-600 hover:bg-purple-700"
+                      disabled={!available}
+                    >
+                      {available ? 'بدء الاختبار' : (
+                        new Date() < new Date(exam.start_at.replace(' ', 'T') + 'Z') 
+                          ? 'غير متاح' 
+                          : 'انتهى الوقت'
+                      )}
+                    </Button>
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })
         )}
       </div>
     </div>

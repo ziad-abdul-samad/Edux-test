@@ -21,7 +21,7 @@ export const updateExam = async (
   formData.append("attempt_limit", examData.attempt_limit.toString());
 
   examData.questions.forEach((question, qIndex) => {
-    if (question.id) {
+     if (question.id && typeof question.id === "number") {
       formData.append(`questions[${qIndex}][id]`, question.id.toString());
     }
     formData.append(`questions[${qIndex}][text]`, question.text);

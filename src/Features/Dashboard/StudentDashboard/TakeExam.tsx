@@ -386,8 +386,10 @@ const TakeExam = () => {
         )}
       </div>
       <h2 className="text-2xl font-bold mt-4">تم إرسال الاختبار!</h2>
-      <div className="text-4xl font-bold text-blue-700">
-        {score}/{questions.length}
+      <div className="text-4xl font-bold text-blue-700 flex flex-col items-center gap-1">
+        <p className="text-[12px] text-[#777] font-normal">الإجابات الصحيحة  :{score} </p>
+        <p className="text-[12px] text-[#777] font-normal">من أصل : {questions.length}</p>
+      النتيجة:  {score}/{questions.length}
       </div>
       <Button className="mt-6" onClick={() => navigate("/dashboard/exams")}>
         العودة إلى الاختبارات
