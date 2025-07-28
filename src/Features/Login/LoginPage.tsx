@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FaWhatsapp } from "react-icons/fa";
+
 import {
   Card,
   CardContent,
@@ -10,8 +12,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Info, MessageCircle } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { login } from "./services/LoginService";
 import { useToast } from "@/components/ui/use-toast";
@@ -25,29 +34,68 @@ const LoginPage = () => {
   const { toast } = useToast();
 
   const { mutate, isPending } = useMutation({
-  mutationFn: login,
-  onSuccess: () => {
-    navigate("/dashboard");
-  },
-  onError: (error) => {
-    const axiosError = error as AxiosError<{ data: string; message: string; status: number }>;
+    mutationFn: login,
+    onSuccess: () => {
+      navigate("/dashboard");
+    },
+    onError: (error) => {
+      const axiosError = error as AxiosError<{
+        data: string;
+        message: string;
+        status: number;
+      }>;
 
-    const errorMessage =
-      axiosError.response?.data?.data ||
-      axiosError.response?.data?.message ||
-      axiosError.message ||
-      "حدث خطأ أثناء تسجيل الدخول.";
+      const errorMessage =
+        axiosError.response?.data?.data ||
+        axiosError.response?.data?.message ||
+        axiosError.message ||
+        "حدث خطأ أثناء تسجيل الدخول.";
 
-    toast({
-      title: "فشل تسجيل الدخول",
-      description: errorMessage,
-      variant: "destructive",
-    });
-  },
-});
+      toast({
+        title: "فشل تسجيل الدخول",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-purple-500 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-purple-500 p-4 relative">
+      {/* Info & WhatsApp Icons */}
+      <div className="absolute top-4 right-4 flex gap-3">
+        {/* Info Dialog */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Info size={22} />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="text-center">
+            <DialogHeader>
+              <DialogTitle>: Project Team </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2  text-sm font-medium text-[#777]">
+              <p>Manager: Abd Alkareem Al Raeis</p>
+              <p>Back-end Dev: Saeed Al Masmoum</p>
+              <p>Front-end Dev & UI/UX: Ziad Abdul Samad</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* WhatsApp Shortcut */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            window.open("https://wa.me/963997546588", "_blank");
+          }}
+          className="hover:text-primary hover:bg-white bg-primary text-white"
+        >
+          <FaWhatsapp size={22}/>
+        </Button>
+      </div>
+
+      {/* Login Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -56,7 +104,9 @@ const LoginPage = () => {
       >
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-primary">Edux</CardTitle>
+            <CardTitle className="text-2xl font-bold text-primary">
+              Edux
+            </CardTitle>
             <CardDescription>قم بتسجيل الدخول للوصول إلى حسابك</CardDescription>
           </CardHeader>
           <CardContent>
