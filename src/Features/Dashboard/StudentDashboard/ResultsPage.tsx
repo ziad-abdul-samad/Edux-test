@@ -115,7 +115,7 @@ const results: ExamResult[] = Array.isArray(data?.data) ? data.data : [];
                     </h3>
                     <p className="text-sm text-gray-500">
                       تاريخ المحاولة:{" "}
-                      {new Date(attempt.submitted_at).toLocaleString("ar-EG", {
+                      {new Date(attempt.submitted_at).toLocaleString("EG-ar", {
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}

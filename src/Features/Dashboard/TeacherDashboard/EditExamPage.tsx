@@ -464,7 +464,7 @@ const EditExamPage = () => {
               />
             </div>
 
-            <div className="space-y-2 ">
+            {/* <div className="space-y-2 ">
               <Label className="flex items-center gap-2">
                 السماح بمراجعة الإجابات
               </Label>
@@ -479,7 +479,7 @@ const EditExamPage = () => {
                     : "لا يمكن للطلاب مراجعة إجاباتهم"}
                 </span>
               </div>
-            </div>
+            </div> */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Timer className="h-4 w-4" />

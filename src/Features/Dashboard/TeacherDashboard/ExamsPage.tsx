@@ -343,12 +343,12 @@ const ExamsPage = () => {
                     </div>
                   )}
 
-                  <div>
+                  {/* <div>
                     <h3 className="font-medium text-sm">مراجعة الإجابات</h3>
                     <p className="text-sm text-gray-600 mt-1">
                       {exam.allow_review ? "مسموح" : "غير مسموح"}
                     </p>
-                  </div>
+                  </div> */}
 
                   <div>
                     <h3 className="font-medium text-sm">تاريخ الإنشاء</h3>

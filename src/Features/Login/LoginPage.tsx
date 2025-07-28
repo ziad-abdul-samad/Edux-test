@@ -105,7 +105,7 @@ const LoginPage = () => {
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
+                {isPending ? "جارٍ تسجيل الدخول..." : "تسجيل الدخول"}
               </Button>
             </form>
           </CardContent>
