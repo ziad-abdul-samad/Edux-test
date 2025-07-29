@@ -310,8 +310,8 @@ const StudentPage = () => {
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-                  {/* To DO : Add Exams counts for each student  */}
-                  <span>{0} اختبار مكتمل</span>
+                  
+                  <span>{data.data.examCount} اختبار مكتمل</span>
                   <span>
                     تم الإضافة:{" "}
                     {new Date(student.created_at).toLocaleDateString("ar-EG")}

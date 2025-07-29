@@ -119,7 +119,7 @@ const EditExamPage = () => {
   });
 
   const handleAddQuestion = () => {
-    const newQId = `q${Date.now()}`;
+    const newQId = `new-q${Date.now()}`;
     setQuestions([
       ...questions,
       {
@@ -165,7 +165,7 @@ const EditExamPage = () => {
     setQuestions(
       questions.map((q) => {
         if (q.id !== qid) return q;
-        const newCId = `${qid}-c${q.choices.length + 1}`;
+        const newCId = `${qid}-c${Date.now()}`;
         return {
           ...q,
           choices: [...q.choices, { id: newCId, text: "", isCorrect: false }],
@@ -376,23 +376,34 @@ const EditExamPage = () => {
           ? formatDateForBackend(availableUntil)
           : null
         : null,
-
       attempt_limit: Number(attemptLimit),
-      questions: questions.map((q) => ({
-        id: q.id.startsWith("q") ? q.id.substring(1) : q.id,
-        text: q.text,
-        type: "multiple_choice",
-        image: q.imageFile,
-        answers: q.choices.map((c) => ({
-          id: c.id.startsWith("q") ? c.id.split("-c")[1] : c.id,
-          text: c.text,
-          is_correct: c.isCorrect,
-        })),
-      })),
+      questions: questions.map((q) => {
+        // Determine if this is an existing question (has numeric ID) or new question
+        const isExistingQuestion = !q.id.startsWith("new-");
+
+        return {
+          ...(isExistingQuestion ? { id: Number(q.id.replace("q", "")) } : {}), // Only include ID for existing questions
+          text: q.text,
+          type: "multiple_choice",
+          image: q.imageFile,
+          answers: q.choices.map((c) => {
+            // Determine if this is an existing answer (has numeric ID) or new answer
+            const answerIdParts = c.id.split("-c");
+            const isExistingAnswer = isExistingQuestion && answerIdParts.length > 1 && !isNaN(Number(answerIdParts[1]));
+
+            return {
+              ...(isExistingAnswer ? { id: Number(answerIdParts[1]) } : {}), // Only include ID for existing answers
+              text: c.text,
+              is_correct: c.isCorrect,
+            };
+          }),
+        };
+      }),
     };
 
     mutation.mutate(payload);
   };
+
   function formatTimeForInput(date: Date): string {
     const hours = `${date.getHours()}`.padStart(2, "0");
     const minutes = `${date.getMinutes()}`.padStart(2, "0");
@@ -464,22 +475,6 @@ const EditExamPage = () => {
               />
             </div>
 
-            {/* <div className="space-y-2 ">
-              <Label className="flex items-center gap-2">
-                السماح بمراجعة الإجابات
-              </Label>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={allowReview}
-                  onCheckedChange={setAllowReview}
-                />
-                <span className="text-sm text-gray-500">
-                  {allowReview
-                    ? "يمكن للطلاب مراجعة إجاباتهم"
-                    : "لا يمكن للطلاب مراجعة إجاباتهم"}
-                </span>
-              </div>
-            </div> */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Timer className="h-4 w-4" />

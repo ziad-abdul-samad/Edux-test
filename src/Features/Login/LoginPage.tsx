@@ -75,7 +75,7 @@ const LoginPage = () => {
               <DialogTitle>: Project Team </DialogTitle>
             </DialogHeader>
             <div className="space-y-2  text-sm font-medium text-[#777]">
-              <p>Manager: Abd Alkareem Al Raeis</p>
+              <p>Manager: Abd Alkareem Al Raies</p>
               <p>Back-end Dev: Saeed Al Masmoum</p>
               <p>Front-end Dev & UI/UX: Ziad Abdul Samad</p>
             </div>
