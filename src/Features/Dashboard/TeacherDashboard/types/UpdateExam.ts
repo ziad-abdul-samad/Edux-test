@@ -21,6 +21,7 @@ export type UpdateExamResponse = {
       type: string;
       created_at: string;
       updated_at: string;
+      deleteImage?: boolean;
       answers: {
         id: number;
         question_id: number;
@@ -51,6 +52,7 @@ export type UpdateExamRequest = {
     text: string;
     type?: "multiple_choice";
     image?: File | null;
+    deleteImage?: boolean;
     answers: {
       id?: number | string; // Can be string for new answers
       text: string;

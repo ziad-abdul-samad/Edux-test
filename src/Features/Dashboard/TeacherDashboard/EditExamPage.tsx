@@ -56,19 +56,35 @@ const EditExamPage = () => {
   const [availableFrom, setAvailableFrom] = useState<Date | undefined>();
   const [availableUntil, setAvailableUntil] = useState<Date | undefined>();
   const [attemptLimit, setAttemptLimit] = useState<string>("1");
-  const [questions, setQuestions] = useState([
-    {
-      id: "q1",
-      text: "",
-      imageUrl: "",
-      imageFile: null as File | null,
-      imagePreview: "",
-      choices: [
-        { id: "q1-c1", text: "", isCorrect: true },
-        { id: "q1-c2", text: "", isCorrect: false },
-      ],
-    },
-  ]);
+  type QuestionType = {
+  id: string;
+  text: string;
+  imageUrl: string;
+  imageFile: File | null;
+  imagePreview: string;
+  deleteImage?: boolean;  // Add this line!
+  choices: {
+    id: string;
+    text: string;
+    isCorrect: boolean;
+  }[];
+};
+
+const [questions, setQuestions] = useState<QuestionType[]>([
+  {
+    id: "q1",
+    text: "",
+    imageUrl: "",
+    imageFile: null,
+    imagePreview: "",
+    deleteImage: false,  // initialize it here optionally
+    choices: [
+      { id: "q1-c1", text: "", isCorrect: true },
+      { id: "q1-c2", text: "", isCorrect: false },
+    ],
+  },
+]);
+
 
   // Initialize form with existing data
   useEffect(() => {
@@ -92,6 +108,7 @@ const EditExamPage = () => {
           imageUrl: q.image || "",
           imageFile: null,
           imagePreview: q.image ? `https://edux.site/${q.image}` : "",
+          deleteImage: false,
           choices: q.answers.map((a) => ({
             id: `q${q.id}-c${a.id}`,
             text: a.text,
@@ -255,19 +272,21 @@ const EditExamPage = () => {
   };
 
   const handleRemoveImage = (qid: string) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === qid
-          ? {
-              ...q,
-              imageFile: null,
-              imagePreview: "",
-              imageUrl: "",
-            }
-          : q
-      )
-    );
-  };
+  setQuestions(
+    questions.map((q) =>
+      q.id === qid
+        ? {
+            ...q,
+            imageFile: null,
+            imagePreview: "",
+            imageUrl: "",
+            deleteImage: true, // 👈 Mark for deletion
+          }
+        : q
+    )
+  );
+};
+
 
   // Final submit
   const handleSubmit = () => {
@@ -386,6 +405,7 @@ const EditExamPage = () => {
           text: q.text,
           type: "multiple_choice",
           image: q.imageFile,
+          deleteImage: q.deleteImage ?? false,
           answers: q.choices.map((c) => {
             // Determine if this is an existing answer (has numeric ID) or new answer
             const answerIdParts = c.id.split("-c");

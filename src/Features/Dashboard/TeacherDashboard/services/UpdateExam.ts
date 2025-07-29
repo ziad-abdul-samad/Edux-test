@@ -21,7 +21,7 @@ export const updateExam = async (
   formData.append("attempt_limit", examData.attempt_limit.toString());
 
   examData.questions.forEach((question, qIndex) => {
-     if (question.id && typeof question.id === "number") {
+    if (question.id && typeof question.id === "number") {
       formData.append(`questions[${qIndex}][id]`, question.id.toString());
     }
     formData.append(`questions[${qIndex}][text]`, question.text);
@@ -30,6 +30,12 @@ export const updateExam = async (
     }
     if (question.image) {
       formData.append(`questions[${qIndex}][image]`, question.image);
+    }
+    if (question.deleteImage !== undefined) {
+      formData.append(
+        `questions[${qIndex}][delete_image]`,
+        question.deleteImage ? "1" : "0"
+      ); // ✅ Laravel-friendly boolean
     }
 
     question.answers.forEach((answer, aIndex) => {
