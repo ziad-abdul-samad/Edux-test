@@ -527,7 +527,7 @@ const FilesLibrary = () => {
                 إلغاء
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "جاري الإضافة..." : "إضافة التصنيف"}
+                {isPending ? "جارٍ الإضافة..." : "إضافة التصنيف"}
               </Button>
             </DialogFooter>
           </form>
@@ -721,7 +721,7 @@ const FilesLibrary = () => {
             {isUploading && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>جاري الرفع...</span>
+                  <span>جارٍ الرفع...</span>
                   <span>{uploadProgress}%</span>
                 </div>
                 <Progress value={uploadProgress} className="h-2" />
@@ -770,7 +770,7 @@ const FilesLibrary = () => {
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    جاري الرفع...
+                    جارٍ الرفع...
                   </>
                 ) : (
                   "رفع"

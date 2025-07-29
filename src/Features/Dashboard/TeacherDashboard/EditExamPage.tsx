@@ -743,7 +743,7 @@ const [questions, setQuestions] = useState<QuestionType[]>([
             {mutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                جاري الحفظ...
+                جارٍ الحفظ...
               </>
             ) : (
               <>
