@@ -309,7 +309,7 @@ useEffect(() => {
         transition={{ duration: 0.3 }}
         className="bg-white border-l w-full lg:w-64 p-4 lg:min-h-screen"
       >
-        <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center justify-center mb-8 pt-8">
           <div className="font-bold text-xl text-purple-700">Edux</div>
         </div>
 
