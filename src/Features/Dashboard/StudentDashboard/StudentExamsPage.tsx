@@ -21,28 +21,43 @@ const StudentExamsPage = () => {
     queryFn: GetActiveExams,
   });
 
-  const isExamAvailable = (exam) => {
-    if (exam.is_scheduled !== 1) return true;
+  const getExamStatus = (exam) => {
+    if (exam.is_scheduled !== 1) return 'available';
     
     const now = new Date();
-    const startDate = new Date(exam.start_at.replace(' ', 'T') + 'Z');
-    const endDate = new Date(exam.end_at.replace(' ', 'T') + 'Z');
+    const startDate = new Date(exam.start_at);
+    const endDate = new Date(exam.end_at);
     
-    console.log('Now:', now);
-    console.log('Start Date:', startDate);
-    console.log('End Date:', endDate);
-    console.log('Is available:', now >= startDate && now <= endDate);
-    
-    return now >= startDate && now <= endDate;
+    if (now < startDate) return 'upcoming';
+    if (now > endDate) return 'expired';
+    return 'available';
   };
 
   if (isPending) {
-    return <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
-      <svg className="animate-spin h-10 w-10 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-      </svg>
-    </div>;
+    return (
+      <div className="py-8 flex justify-center items-center h-full w-full rounded-md max-w-md mx-auto">
+        <svg
+          className="animate-spin h-10 w-10 text-purple-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+      </div>
+    );
   }
 
   if (error) {
@@ -75,7 +90,9 @@ const StudentExamsPage = () => {
           </div>
         ) : (
           filteredExams.map((exam, index) => {
-            const available = isExamAvailable(exam);
+            const status = getExamStatus(exam);
+            const available = status === 'available';
+            
             return (
               <motion.div
                 key={exam.id}
@@ -86,11 +103,9 @@ const StudentExamsPage = () => {
                 <Card className={`p-4 hover:shadow-md transition-shadow ${!available ? 'opacity-80' : ''}`}>
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-100">
-                      {!available ? (
-                        <Lock className="h-5 w-5 text-purple-700" />
-                      ) : (
-                        <BookOpen className="h-5 w-5 text-purple-700" />
-                      )}
+                      {status === 'upcoming' && <Clock className="h-5 w-5 text-purple-700" />}
+                      {status === 'available' && <BookOpen className="h-5 w-5 text-purple-700" />}
+                      {status === 'expired' && <Lock className="h-5 w-5 text-purple-700" />}
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between">
@@ -119,16 +134,29 @@ const StudentExamsPage = () => {
                         المحاولات المنجزة: {exam.attemptsCount}
                       </p>
                       {exam.is_scheduled === 1 && exam.start_at && (
-                        <div className="mt-2 text-purple-700 flex items-start text-sm flex-col">
-                          <span>الاختبار مجدول</span>
-                          <span>من {exam.start_at}</span>
-                          <span>إلى {exam.end_at}</span>
-                          {!available && (
-                            <span className="text-red-500 mt-1">
-                              {new Date() < new Date(exam.start_at.replace(' ', 'T') + 'Z') 
-                                ? 'غير متاح حتى الآن' 
-                                : 'انتهى وقت الاختبار'}
-                            </span>
+                        <div className="mt-2 flex items-start text-sm flex-col">
+                          {status === 'upcoming' && (
+                            <>
+                              <span className="text-purple-700">الاختبار مجدول</span>
+                              <span className="text-gray-600">يبدأ في {new Date(exam.start_at).toLocaleString()}</span>
+                              <span className="text-gray-600">ينتهي في {new Date(exam.end_at).toLocaleString()}</span>
+                              <span className="text-yellow-600 mt-1">لم يبدأ بعد</span>
+                            </>
+                          )}
+                          {status === 'available' && (
+                            <>
+                              <span className="text-green-700">الاختبار متاح الآن</span>
+                              <span className="text-gray-600">ينتهي في {new Date(exam.end_at).toLocaleString()}</span>
+                              <span className="text-green-600 mt-1">متاح للبدء</span>
+                            </>
+                          )}
+                          {status === 'expired' && (
+                            <>
+                              <span className="text-purple-700">الاختبار منتهي</span>
+                              <span className="text-gray-600">كان من {new Date(exam.start_at).toLocaleString()}</span>
+                              <span className="text-gray-600">إلى {new Date(exam.end_at).toLocaleString()}</span>
+                              <span className="text-red-500 mt-1">انتهى وقت الاختبار</span>
+                            </>
                           )}
                         </div>
                       )}
@@ -137,14 +165,12 @@ const StudentExamsPage = () => {
                   <div className="mt-4 flex justify-end">
                     <Button
                       onClick={() => navigate(`/dashboard/exams/take/${exam.id}`)}
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className={`${available ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400'}`}
                       disabled={!available}
                     >
-                      {available ? 'بدء الاختبار' : (
-                        new Date() < new Date(exam.start_at.replace(' ', 'T') + 'Z') 
-                          ? 'غير متاح' 
-                          : 'انتهى الوقت'
-                      )}
+                      {status === 'upcoming' && 'لم يبدأ بعد'}
+                      {status === 'available' && 'بدء الاختبار'}
+                      {status === 'expired' && 'انتهى الوقت'}
                     </Button>
                   </div>
                 </Card>
