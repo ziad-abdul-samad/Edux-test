@@ -203,7 +203,7 @@ const LibraryPage = () => {
               </div>
             ) : (
               filteredFiles.map((file, index) => {
-                const fileUrl = `https://edux.site/${file.file}`;
+                const fileUrl = `https://edux.site/backend/public/${file.file}`;
 
                 return (
                   <motion.div
@@ -268,7 +268,7 @@ const LibraryPage = () => {
             ) : (
               <div className="divide-y">
                 {filteredFiles.map((file, index) => {
-                  const fileUrl = `https://edux.site/${file.file}`;
+                  const fileUrl = `https://edux.site/backend/public/${file.file}`;
 
                   return (
                     <motion.div

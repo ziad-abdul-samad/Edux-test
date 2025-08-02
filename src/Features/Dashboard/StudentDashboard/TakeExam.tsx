@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Clock, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
@@ -329,7 +329,7 @@ const TakeExam = () => {
     );
   };
 
-  const IMAGE_BASE_URL = "https://edux.site/";
+  const IMAGE_BASE_URL = "https://edux.site/backend/public/";
 
   const renderQuestion = (question: Question) => (
     <div className="space-y-6">
@@ -476,11 +476,18 @@ const TakeExam = () => {
                   >
                     السابق
                   </Button>
-                  <Button onClick={handleNext}>
-                    {currentQuestionIndex === questions.length - 1
-                      ? "إرسال الاختبار"
-                      : "التالي"}
-                  </Button>
+                  <Button onClick={handleNext} disabled={mutation.isPending}>
+                    {mutation.isPending ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        جارٍ الإرسال...
+                      </span>
+                    ) : currentQuestionIndex === questions.length - 1 ? (
+                      "إرسال الاختبار"
+                    ) : (
+                      "التالي"
+                    )}
+        </Button>
                 </div>
               </motion.div>
             ) : (

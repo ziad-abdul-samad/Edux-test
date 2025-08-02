@@ -62,7 +62,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-purple-500 p-4 relative">
       {/* Info & WhatsApp Icons */}
-      <div className="absolute top-4 right-4 flex gap-3">
+      <div className="absolute top-6 right-4 flex gap-3">
         {/* Info Dialog */}
         <Dialog>
           <DialogTrigger asChild>
@@ -76,8 +76,8 @@ const LoginPage = () => {
             </DialogHeader>
             <div className="space-y-2  text-sm font-medium text-[#777]">
               <p>Manager: Abd Alkareem Al Raies</p>
-              <p>Back-end Dev: Saeed Al Masmoum</p>
-              <p>Front-end Dev & UI/UX: Ziad Abdul Samad</p>
+              <p>Back-end Dev: M.Saeed Al Masmoum</p>
+              <p>Front-end Dev & UI/UX: M.Ziad Abdul Samad</p>
             </div>
           </DialogContent>
         </Dialog>

@@ -113,7 +113,7 @@ const FilesLibrary = () => {
       });
     },
   });
-  const FILES_BASE_URL = "https://edux.site/";
+  const FILES_BASE_URL = "https://edux.site/backend/public/";
   const queryClient = useQueryClient();
 
   // Fetch categories and files

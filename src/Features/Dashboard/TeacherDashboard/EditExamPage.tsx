@@ -107,7 +107,7 @@ const [questions, setQuestions] = useState<QuestionType[]>([
           text: q.text,
           imageUrl: q.image || "",
           imageFile: null,
-          imagePreview: q.image ? `https://edux.site/${q.image}` : "",
+          imagePreview: q.image ? `https://edux.site/backend/public/${q.image}` : "",
           deleteImage: false,
           choices: q.answers.map((a) => ({
             id: `q${q.id}-c${a.id}`,

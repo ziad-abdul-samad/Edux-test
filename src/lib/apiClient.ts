@@ -13,7 +13,7 @@ export interface ApiResponse<T> {
 }
 
 const apiClient = axios.create({
-  baseURL: "https://edux.site/api",
+  baseURL: "https://edux.site/backend/public/api",
   headers: {
     "Content-Type": "application/json",
   },

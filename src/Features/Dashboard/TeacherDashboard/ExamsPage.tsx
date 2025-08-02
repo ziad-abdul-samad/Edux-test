@@ -48,7 +48,7 @@ const ExamsPage = () => {
   const [loadingExamId, setLoadingExamId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
-  const IMAGE_BASE_URL = "https://edux.site/";
+  const IMAGE_BASE_URL = "https://edux.site/backend/public/";
 
   const { mutate: removeExam } = useMutation({
     mutationFn: DeleteExam,
